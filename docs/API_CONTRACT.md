@@ -454,6 +454,70 @@ Usunięcie sali.
 
 ---
 
+### 8. Pracownicy (Employees)
+
+#### POST /employees
+Utworzenie profilu pracownika.
+
+**Request Body:**
+```json
+{
+  "userId": "uuid",
+  "position": "RECEPTIONIST",
+  "department": "Recepcja",
+  "salary": 5000.00,
+  "hireDate": "2024-01-01",
+  "isActive": true
+}
+```
+
+**Response:** `201 Created`
+
+#### GET /employees
+Lista pracowników z paginacją.
+
+**Query Parameters:**
+- `limit` (number, default: 20)
+- `offset` (number, default: 0)
+- `position` (string, optional) - Filtrowanie po stanowisku
+- `isActive` (boolean, optional) - Filtrowanie aktywnych
+
+**Response:** `200 OK`
+
+#### GET /employees/:id
+Szczegóły pracownika.
+
+**Response:** `200 OK`
+```json
+{
+  "data": {
+    "id": "uuid",
+    "userId": "uuid",
+    "user": {
+      "firstName": "Jan",
+      "lastName": "Kowalski"
+    },
+    "position": "RECEPTIONIST",
+    "department": "Recepcja",
+    "salary": 5000.00,
+    "hireDate": "2024-01-01",
+    "isActive": true
+  }
+}
+```
+
+#### PUT /employees/:id
+Aktualizacja pracownika.
+
+**Response:** `200 OK`
+
+#### DELETE /employees/:id
+Usunięcie pracownika.
+
+**Response:** `200 OK`
+
+---
+
 ## Kody HTTP
 
 - `200 OK` - Sukces

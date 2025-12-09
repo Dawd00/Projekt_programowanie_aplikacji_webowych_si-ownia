@@ -10,6 +10,7 @@ import {
 import { Pass } from '../../passes/entities/pass.entity';
 import { Booking } from '../../bookings/entities/booking.entity';
 import { Trainer } from '../../trainers/entities/trainer.entity';
+import { Employee } from '../../employees/entities/employee.entity';
 
 export enum UserRole {
   CLIENT = 'CLIENT',
@@ -60,5 +61,8 @@ export class User {
 
   @OneToOne(() => Trainer, (trainer) => trainer.user)
   trainer: Trainer;
+
+  @OneToOne(() => Employee, (employee) => employee.user)
+  employee: Employee;
 }
 

@@ -11,6 +11,7 @@ import { SessionsModule } from './sessions/sessions.module';
 import { BookingsModule } from './bookings/bookings.module';
 import { RoomsModule } from './rooms/rooms.module';
 import { AuthModule } from './auth/auth.module';
+import { EmployeesModule } from './employees/employees.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { AuthModule } from './auth/auth.module';
     SessionsModule,
     BookingsModule,
     RoomsModule,
+    EmployeesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

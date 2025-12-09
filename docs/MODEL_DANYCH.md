@@ -16,7 +16,23 @@
 │ - updatedAt │         │ - updatedAt  │         └─────────────┘
 └─────────────┘         └──────────────┘                │
        │                                                │
-       │ 1:N                                            │ 1:N
+       │ 1:1                                            │ 1:N
+       │                                                │
+       │         ┌─────────────┐                       │
+       └────────>│  Employee   │                       │
+                 │             │                       │
+                 │ - id        │                       │
+                 │ - userId    │                       │
+                 │ - position  │                       │
+                 │ - department│                       │
+                 │ - salary    │                       │
+                 │ - hireDate  │                       │
+                 │ - isActive  │                       │
+                 │ - createdAt │                       │
+                 │ - updatedAt │                       │
+                 └─────────────┘                       │
+                                                        │
+       │ 1:N                                            │
        │                                                │
        │         ┌──────────────┐         ┌─────────────┐
        └────────>│   Booking    │<────────┼─  Session   │
@@ -68,6 +84,7 @@ Główna tabela użytkowników - klienci, trenerzy, pracownicy.
 - `1:N` z `Pass` (jeden użytkownik może mieć wiele karnetów)
 - `1:N` z `Booking` (jeden użytkownik może mieć wiele rezerwacji)
 - `1:1` z `Trainer` (jeśli rola = TRAINER)
+- `1:1` z `Employee` (jeśli rola = EMPLOYEE)
 
 ### 2. Pass (Karnet)
 Karnety zakupione przez klientów.
@@ -105,7 +122,25 @@ Rozszerzenie użytkownika dla trenerów.
 - `1:1` z `User` (jeden trener to jeden użytkownik)
 - `1:N` z `Session` (jeden trener może mieć wiele sesji)
 
-### 4. Session (Sesja/Termin)
+### 4. Employee (Pracownik)
+Rozszerzenie użytkownika dla pracowników siłowni (recepcja, zarząd, konserwacja, etc.).
+
+| Pole | Typ | Opis | Wymagane |
+|------|-----|------|----------|
+| id | UUID | Unikalny identyfikator | Tak |
+| userId | UUID | ID użytkownika (FK, unikalny) | Tak |
+| position | Enum | Stanowisko: RECEPTIONIST, MANAGER, CLEANER, MAINTENANCE, OTHER | Tak |
+| department | String(255) | Dział | Nie |
+| salary | Decimal(10,2) | Wynagrodzenie | Tak |
+| hireDate | Date | Data zatrudnienia | Nie |
+| isActive | Boolean | Czy pracownik jest aktywny | Tak |
+| createdAt | DateTime | Data utworzenia | Tak |
+| updatedAt | DateTime | Data aktualizacji | Tak |
+
+**Relacje:**
+- `1:1` z `User` (jeden pracownik to jeden użytkownik)
+
+### 5. Session (Sesja/Termin)
 Sesje z trenerem personalnym lub zajęcia grupowe.
 
 | Pole | Typ | Opis | Wymagane |
@@ -127,7 +162,7 @@ Sesje z trenerem personalnym lub zajęcia grupowe.
 - `N:1` z `Room` (wiele sesji może być w jednej sali)
 - `1:N` z `Booking` (jedna sesja może mieć wiele rezerwacji)
 
-### 5. Booking (Rezerwacja)
+### 6. Booking (Rezerwacja)
 Rezerwacje sesji przez klientów.
 
 | Pole | Typ | Opis | Wymagane |
@@ -144,7 +179,7 @@ Rezerwacje sesji przez klientów.
 - `N:1` z `User` (wiele rezerwacji należy do jednego użytkownika)
 - `N:1` z `Session` (wiele rezerwacji należy do jednej sesji)
 
-### 6. Room (Sala)
+### 7. Room (Sala)
 Sale dostępne do wynajęcia.
 
 | Pole | Typ | Opis | Wymagane |
@@ -185,6 +220,13 @@ Sale dostępne do wynajęcia.
 - `CANCELLED` - Anulowana
 - `COMPLETED` - Zakończona
 
+### Employee.position
+- `RECEPTIONIST` - Recepcjonista
+- `MANAGER` - Kierownik
+- `CLEANER` - Sprzątacz
+- `MAINTENANCE` - Konserwator
+- `OTHER` - Inne
+
 ## Indeksy
 
 - `User.email` - UNIQUE
@@ -192,6 +234,7 @@ Sale dostępne do wynajęcia.
 - `Pass.userId` - INDEX
 - `Pass.isActive` - INDEX
 - `Trainer.userId` - UNIQUE
+- `Employee.userId` - UNIQUE
 - `Session.trainerId` - INDEX
 - `Session.date` - INDEX
 - `Booking.userId` - INDEX

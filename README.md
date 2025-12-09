@@ -103,7 +103,5 @@ Zobacz [API_CONTRACT.md](./docs/API_CONTRACT.md) dla pełnej dokumentacji API.
 - `feature/*` - nowe funkcjonalności
 - `fix/*` - poprawki błędów
 
-## Autorzy
 
-Projekt na potrzeby kursu Programowania Aplikacji Webowych.
 

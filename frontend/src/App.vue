@@ -7,6 +7,7 @@
       <v-btn to="/users" variant="text">Użytkownicy</v-btn>
       <v-btn to="/passes" variant="text">Karnety</v-btn>
       <v-btn to="/bookings" variant="text">Rezerwacje</v-btn>
+      <v-btn to="/employees" variant="text">Pracownicy</v-btn>
     </v-app-bar>
 
     <v-main>

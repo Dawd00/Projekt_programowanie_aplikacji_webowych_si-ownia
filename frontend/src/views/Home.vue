@@ -45,6 +45,18 @@
           </v-card-actions>
         </v-card>
       </v-col>
+
+      <v-col cols="12" md="4">
+        <v-card>
+          <v-card-title>Pracownicy</v-card-title>
+          <v-card-text>
+            Zarządzaj pracownikami siłowni - recepcja, zarząd, konserwacja.
+          </v-card-text>
+          <v-card-actions>
+            <v-btn to="/employees" color="primary">Przejdź</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-col>
     </v-row>
   </v-container>
 </template>
