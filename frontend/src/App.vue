@@ -3,11 +3,17 @@
     <v-app-bar color="primary" prominent>
       <v-app-bar-title>Panel Siłowni</v-app-bar-title>
       <v-spacer></v-spacer>
-      <v-btn to="/" variant="text">Strona główna</v-btn>
-      <v-btn to="/users" variant="text">Użytkownicy</v-btn>
-      <v-btn to="/passes" variant="text">Karnety</v-btn>
-      <v-btn to="/bookings" variant="text">Rezerwacje</v-btn>
-      <v-btn to="/employees" variant="text">Pracownicy</v-btn>
+      <template v-if="isAuthenticated">
+        <v-btn to="/" variant="text">Strona główna</v-btn>
+        <v-btn to="/users" variant="text">Użytkownicy</v-btn>
+        <v-btn to="/passes" variant="text">Karnety</v-btn>
+        <v-btn to="/bookings" variant="text">Rezerwacje</v-btn>
+        <v-btn to="/employees" variant="text">Pracownicy</v-btn>
+        <v-btn @click="handleLogout" variant="text">Wyloguj</v-btn>
+      </template>
+      <template v-else>
+        <v-btn to="/login" variant="text">Zaloguj</v-btn>
+      </template>
     </v-app-bar>
 
     <v-main>
@@ -30,12 +36,39 @@
 </template>
 
 <script setup>
+import { ref, computed, onMounted, provide } from 'vue'
+import { useRouter } from 'vue-router'
 import { useToast } from './composables/useToast'
-import { provide } from 'vue'
 
+const router = useRouter()
 const { snackbar, showSuccess, showError, showInfo } = useToast()
 
 // Provide toast functions to all child components
 provide('toast', { showSuccess, showError, showInfo })
+
+const user = ref(null)
+
+const isAuthenticated = computed(() => {
+  return !!localStorage.getItem('token')
+})
+
+const handleLogout = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+  user.value = null
+  showSuccess('Wylogowano pomyślnie')
+  router.push('/login')
+}
+
+onMounted(() => {
+  const userData = localStorage.getItem('user')
+  if (userData) {
+    try {
+      user.value = JSON.parse(userData)
+    } catch (e) {
+      console.error('Error parsing user data:', e)
+    }
+  }
+})
 </script>
 
