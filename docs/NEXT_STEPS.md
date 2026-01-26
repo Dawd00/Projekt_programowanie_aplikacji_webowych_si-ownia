@@ -25,22 +25,24 @@
 
 ## Plan pracy:
 
-### Krok 1: JWT Guards
-- [ ] Utworzenie JwtAuthGuard
-- [ ] Utworzenie JwtStrategy
-- [ ] Dodanie guards do endpointów
-- [ ] Testowanie autoryzacji
+### Krok 1: JWT Guards ✅
+- [x] Utworzenie JwtAuthGuard
+- [x] Utworzenie JwtStrategy
+- [x] Dodanie guards do endpointów (globalny guard)
+- [x] Dekorator @Public() dla publicznych endpointów
+- [x] Dekorator @CurrentUser() do pobierania użytkownika
 
-### Krok 2: Exception Filter
-- [ ] Utworzenie HttpExceptionFilter
-- [ ] Formatowanie błędów walidacji
-- [ ] Rejestracja globalnego filtra
+### Krok 2: Exception Filter ✅
+- [x] Utworzenie HttpExceptionFilter
+- [x] Formatowanie błędów walidacji
+- [x] Rejestracja globalnego filtra
+- [x] Spójny format odpowiedzi błędów
 
-### Krok 3: Walidacja Frontend
-- [ ] Konfiguracja Vee-Validate
-- [ ] Walidacja formularzy Users
-- [ ] Walidacja formularzy Passes
-- [ ] Komunikaty błędów
+### Krok 3: Walidacja Frontend ✅
+- [x] Konfiguracja Vee-Validate
+- [x] Walidacja formularzy Users
+- [x] Schema walidacji z Yup
+- [x] Komunikaty błędów po polsku
 
 ### Krok 4: Testy (opcjonalnie)
 - [ ] Testy AuthService
