@@ -30,19 +30,48 @@
       <v-card>
         <v-card-title>{{ editingPass ? 'Edytuj karnet' : 'Dodaj karnet' }}</v-card-title>
         <v-card-text>
-          <v-form ref="form">
-            <v-text-field v-model="formData.userId" label="ID Użytkownika" required></v-text-field>
-            <v-select v-model="formData.type" label="Typ" :items="passTypes" required></v-select>
-            <v-text-field v-model="formData.price" label="Cena" type="number" required></v-text-field>
-            <v-text-field v-model="formData.startDate" label="Data rozpoczęcia" type="date" required></v-text-field>
-            <v-text-field v-model="formData.endDate" label="Data zakończenia" type="date" required></v-text-field>
-          </v-form>
+          <Form @submit="savePass" :validation-schema="schema" v-slot="{ errors }">
+            <v-text-field
+              v-model="formData.userId"
+              label="ID Użytkownika"
+              :error-messages="errors.userId"
+              required
+            ></v-text-field>
+            <v-select
+              v-model="formData.type"
+              label="Typ"
+              :items="passTypes"
+              :error-messages="errors.type"
+              required
+            ></v-select>
+            <v-text-field
+              v-model="formData.price"
+              label="Cena"
+              type="number"
+              :error-messages="errors.price"
+              required
+            ></v-text-field>
+            <v-text-field
+              v-model="formData.startDate"
+              label="Data rozpoczęcia"
+              type="date"
+              :error-messages="errors.startDate"
+              required
+            ></v-text-field>
+            <v-text-field
+              v-model="formData.endDate"
+              label="Data zakończenia"
+              type="date"
+              :error-messages="errors.endDate"
+              required
+            ></v-text-field>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn @click="dialog = false">Anuluj</v-btn>
+              <v-btn type="submit" color="primary">Zapisz</v-btn>
+            </v-card-actions>
+          </Form>
         </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn @click="dialog = false">Anuluj</v-btn>
-          <v-btn color="primary" @click="savePass">Zapisz</v-btn>
-        </v-card-actions>
       </v-card>
     </v-dialog>
   </v-container>
@@ -50,6 +79,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { Form } from 'vee-validate'
+import * as yup from 'yup'
 import api from '../services/api'
 
 const passes = ref([])
@@ -69,6 +100,21 @@ const headers = [
 ]
 
 const passTypes = ['MONTHLY', 'QUARTERLY', 'YEARLY', 'SINGLE']
+
+const schema = yup.object({
+  userId: yup.string().required('ID Użytkownika jest wymagane').uuid('Nieprawidłowy format UUID'),
+  type: yup.string().required('Typ jest wymagany').oneOf(passTypes, 'Nieprawidłowy typ karnetu'),
+  price: yup.number().required('Cena jest wymagana').min(0, 'Cena musi być większa lub równa 0'),
+  startDate: yup.string().required('Data rozpoczęcia jest wymagana'),
+  endDate: yup
+    .string()
+    .required('Data zakończenia jest wymagana')
+    .test('is-after-start', 'Data zakończenia musi być po dacie rozpoczęcia', function (value) {
+      const { startDate } = this.parent
+      if (!startDate || !value) return true
+      return new Date(value) >= new Date(startDate)
+    }),
+})
 
 const formData = ref({
   userId: '',
@@ -114,12 +160,12 @@ const editPass = (pass) => {
   dialog.value = true
 }
 
-const savePass = async () => {
+const savePass = async (values) => {
   try {
     if (editingPass.value) {
-      await api.patch(`/passes/${editingPass.value.id}`, formData.value)
+      await api.patch(`/passes/${editingPass.value.id}`, values)
     } else {
-      await api.post('/passes', formData.value)
+      await api.post('/passes', values)
     }
     dialog.value = false
     loadPasses()

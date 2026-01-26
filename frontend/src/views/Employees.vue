@@ -30,20 +30,49 @@
       <v-card>
         <v-card-title>{{ editingEmployee ? 'Edytuj pracownika' : 'Dodaj pracownika' }}</v-card-title>
         <v-card-text>
-          <v-form ref="form">
-            <v-text-field v-model="formData.userId" label="ID Użytkownika" required></v-text-field>
-            <v-select v-model="formData.position" label="Stanowisko" :items="positions" required></v-select>
-            <v-text-field v-model="formData.department" label="Dział"></v-text-field>
-            <v-text-field v-model="formData.salary" label="Wynagrodzenie" type="number" required></v-text-field>
-            <v-text-field v-model="formData.hireDate" label="Data zatrudnienia" type="date"></v-text-field>
-            <v-checkbox v-model="formData.isActive" label="Aktywny"></v-checkbox>
-          </v-form>
+          <Form @submit="saveEmployee" :validation-schema="schema" v-slot="{ errors }">
+            <v-text-field
+              v-model="formData.userId"
+              label="ID Użytkownika"
+              :error-messages="errors.userId"
+              required
+            ></v-text-field>
+            <v-select
+              v-model="formData.position"
+              label="Stanowisko"
+              :items="positions"
+              :error-messages="errors.position"
+              required
+            ></v-select>
+            <v-text-field
+              v-model="formData.department"
+              label="Dział"
+              :error-messages="errors.department"
+            ></v-text-field>
+            <v-text-field
+              v-model="formData.salary"
+              label="Wynagrodzenie"
+              type="number"
+              :error-messages="errors.salary"
+              required
+            ></v-text-field>
+            <v-text-field
+              v-model="formData.hireDate"
+              label="Data zatrudnienia"
+              type="date"
+              :error-messages="errors.hireDate"
+            ></v-text-field>
+            <v-checkbox
+              v-model="formData.isActive"
+              label="Aktywny"
+            ></v-checkbox>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn @click="dialog = false">Anuluj</v-btn>
+              <v-btn type="submit" color="primary">Zapisz</v-btn>
+            </v-card-actions>
+          </Form>
         </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn @click="dialog = false">Anuluj</v-btn>
-          <v-btn color="primary" @click="saveEmployee">Zapisz</v-btn>
-        </v-card-actions>
       </v-card>
     </v-dialog>
   </v-container>
@@ -51,6 +80,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { Form } from 'vee-validate'
+import * as yup from 'yup'
 import api from '../services/api'
 
 const employees = ref([])
@@ -71,6 +102,15 @@ const headers = [
 ]
 
 const positions = ['RECEPTIONIST', 'MANAGER', 'CLEANER', 'MAINTENANCE', 'OTHER']
+
+const schema = yup.object({
+  userId: yup.string().required('ID Użytkownika jest wymagane').uuid('Nieprawidłowy format UUID'),
+  position: yup.string().required('Stanowisko jest wymagane').oneOf(positions, 'Nieprawidłowe stanowisko'),
+  department: yup.string().nullable().max(255, 'Dział może mieć maksymalnie 255 znaków'),
+  salary: yup.number().required('Wynagrodzenie jest wymagane').min(0, 'Wynagrodzenie musi być większe lub równe 0'),
+  hireDate: yup.string().nullable(),
+  isActive: yup.boolean(),
+})
 
 const formData = ref({
   userId: '',
@@ -118,12 +158,12 @@ const editEmployee = (employee) => {
   dialog.value = true
 }
 
-const saveEmployee = async () => {
+const saveEmployee = async (values) => {
   try {
     if (editingEmployee.value) {
-      await api.patch(`/employees/${editingEmployee.value.id}`, formData.value)
+      await api.patch(`/employees/${editingEmployee.value.id}`, values)
     } else {
-      await api.post('/employees', formData.value)
+      await api.post('/employees', values)
     }
     dialog.value = false
     loadEmployees()

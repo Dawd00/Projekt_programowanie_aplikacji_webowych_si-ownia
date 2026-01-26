@@ -30,18 +30,38 @@
       <v-card>
         <v-card-title>{{ editingBooking ? 'Edytuj rezerwację' : 'Dodaj rezerwację' }}</v-card-title>
         <v-card-text>
-          <v-form ref="form">
-            <v-text-field v-model="formData.userId" label="ID Użytkownika" required></v-text-field>
-            <v-text-field v-model="formData.sessionId" label="ID Sesji" required></v-text-field>
-            <v-select v-model="formData.status" label="Status" :items="statuses" required></v-select>
-            <v-textarea v-model="formData.notes" label="Notatki"></v-textarea>
-          </v-form>
+          <Form @submit="saveBooking" :validation-schema="schema" v-slot="{ errors }">
+            <v-text-field
+              v-model="formData.userId"
+              label="ID Użytkownika"
+              :error-messages="errors.userId"
+              required
+            ></v-text-field>
+            <v-text-field
+              v-model="formData.sessionId"
+              label="ID Sesji"
+              :error-messages="errors.sessionId"
+              required
+            ></v-text-field>
+            <v-select
+              v-model="formData.status"
+              label="Status"
+              :items="statuses"
+              :error-messages="errors.status"
+              required
+            ></v-select>
+            <v-textarea
+              v-model="formData.notes"
+              label="Notatki"
+              :error-messages="errors.notes"
+            ></v-textarea>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn @click="dialog = false">Anuluj</v-btn>
+              <v-btn type="submit" color="primary">Zapisz</v-btn>
+            </v-card-actions>
+          </Form>
         </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn @click="dialog = false">Anuluj</v-btn>
-          <v-btn color="primary" @click="saveBooking">Zapisz</v-btn>
-        </v-card-actions>
       </v-card>
     </v-dialog>
   </v-container>
@@ -49,6 +69,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { Form } from 'vee-validate'
+import * as yup from 'yup'
 import api from '../services/api'
 
 const bookings = ref([])
@@ -67,6 +89,13 @@ const headers = [
 ]
 
 const statuses = ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED']
+
+const schema = yup.object({
+  userId: yup.string().required('ID Użytkownika jest wymagane').uuid('Nieprawidłowy format UUID'),
+  sessionId: yup.string().required('ID Sesji jest wymagane').uuid('Nieprawidłowy format UUID'),
+  status: yup.string().required('Status jest wymagany').oneOf(statuses, 'Nieprawidłowy status'),
+  notes: yup.string().nullable().max(500, 'Notatki mogą mieć maksymalnie 500 znaków'),
+})
 
 const formData = ref({
   userId: '',
@@ -110,12 +139,12 @@ const editBooking = (booking) => {
   dialog.value = true
 }
 
-const saveBooking = async () => {
+const saveBooking = async (values) => {
   try {
     if (editingBooking.value) {
-      await api.patch(`/bookings/${editingBooking.value.id}`, formData.value)
+      await api.patch(`/bookings/${editingBooking.value.id}`, values)
     } else {
-      await api.post('/bookings', formData.value)
+      await api.post('/bookings', values)
     }
     dialog.value = false
     loadBookings()
