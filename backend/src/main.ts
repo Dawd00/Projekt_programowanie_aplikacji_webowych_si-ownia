@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -12,12 +13,31 @@ async function bootstrap() {
     credentials: true,
   });
 
+  // Global exception filter
+  app.useGlobalFilters(new HttpExceptionFilter());
+
   // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      exceptionFactory: (errors) => {
+        const messages = errors.map((error) => {
+          const constraints = error.constraints || {};
+          return Object.values(constraints).join(', ');
+        });
+        return new HttpException(
+          {
+            statusCode: 400,
+            message: 'Validation failed',
+            errors: messages.map((msg) => ({
+              message: msg,
+            })),
+          },
+          400,
+        );
+      },
     }),
   );
 
