@@ -1,0 +1,26 @@
+# Typy commitów (Conventional Commits)
+
+feat:     Nowa funkcjonalność
+fix:      Poprawka błędu
+docs:     Zmiany w dokumentacji
+style:    Formatowanie kodu (nie wpływa na działanie)
+refactor: Refaktoryzacja kodu
+test:     Dodanie/zmiana testów
+chore:    Zmiany w build process, zależnościach
+config:   Zmiany w konfiguracji
+perf:     Optymalizacja wydajności
+
+# Przykłady dobrych commitów:
+
+feat: dodanie modułu Employee (pracownicy siłowni)
+fix: naprawa walidacji email w formularzu rejestracji
+docs: aktualizacja README z instrukcjami uruchomienia
+config: zmiana portu frontendu z 3000 na 3002
+
+# Złe przykłady (unikać):
+
+"work in progress"
+"fix"
+"update"
+"changes"
+
