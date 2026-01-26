@@ -30,19 +30,45 @@
       <v-card>
         <v-card-title>{{ editingUser ? 'Edytuj użytkownika' : 'Dodaj użytkownika' }}</v-card-title>
         <v-card-text>
-          <v-form ref="form">
-            <v-text-field v-model="formData.email" label="Email" type="email" required></v-text-field>
-            <v-text-field v-model="formData.firstName" label="Imię" required></v-text-field>
-            <v-text-field v-model="formData.lastName" label="Nazwisko" required></v-text-field>
-            <v-select v-model="formData.role" label="Rola" :items="roles" required></v-select>
-            <v-text-field v-model="formData.phone" label="Telefon"></v-text-field>
-          </v-form>
+          <Form @submit="saveUser" :validation-schema="schema" v-slot="{ errors }">
+            <v-text-field
+              v-model="formData.email"
+              label="Email"
+              type="email"
+              :error-messages="errors.email"
+              required
+            ></v-text-field>
+            <v-text-field
+              v-model="formData.firstName"
+              label="Imię"
+              :error-messages="errors.firstName"
+              required
+            ></v-text-field>
+            <v-text-field
+              v-model="formData.lastName"
+              label="Nazwisko"
+              :error-messages="errors.lastName"
+              required
+            ></v-text-field>
+            <v-select
+              v-model="formData.role"
+              label="Rola"
+              :items="roles"
+              :error-messages="errors.role"
+              required
+            ></v-select>
+            <v-text-field
+              v-model="formData.phone"
+              label="Telefon"
+              :error-messages="errors.phone"
+            ></v-text-field>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn @click="dialog = false">Anuluj</v-btn>
+              <v-btn type="submit" color="primary">Zapisz</v-btn>
+            </v-card-actions>
+          </Form>
         </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn @click="dialog = false">Anuluj</v-btn>
-          <v-btn color="primary" @click="saveUser">Zapisz</v-btn>
-        </v-card-actions>
       </v-card>
     </v-dialog>
   </v-container>
@@ -50,6 +76,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { Form } from 'vee-validate'
+import * as yup from 'yup'
 import api from '../services/api'
 
 const users = ref([])
@@ -68,6 +96,14 @@ const headers = [
 ]
 
 const roles = ['CLIENT', 'TRAINER', 'EMPLOYEE', 'ADMIN']
+
+const schema = yup.object({
+  email: yup.string().email('Nieprawidłowy format email').required('Email jest wymagany'),
+  firstName: yup.string().required('Imię jest wymagane').min(2, 'Imię musi mieć min. 2 znaki'),
+  lastName: yup.string().required('Nazwisko jest wymagane').min(2, 'Nazwisko musi mieć min. 2 znaki'),
+  role: yup.string().required('Rola jest wymagana').oneOf(roles, 'Nieprawidłowa rola'),
+  phone: yup.string().nullable().matches(/^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/, 'Nieprawidłowy format telefonu'),
+})
 
 const formData = ref({
   email: '',
@@ -113,17 +149,21 @@ const editUser = (user) => {
   dialog.value = true
 }
 
-const saveUser = async () => {
+const saveUser = async (values) => {
   try {
+    const dataToSave = editingUser.value ? { ...values } : { ...values, password: 'temp123' }
     if (editingUser.value) {
-      await api.patch(`/users/${editingUser.value.id}`, formData.value)
+      await api.patch(`/users/${editingUser.value.id}`, dataToSave)
     } else {
-      await api.post('/users', formData.value)
+      await api.post('/users', dataToSave)
     }
     dialog.value = false
     loadUsers()
   } catch (error) {
     console.error('Error saving user:', error)
+    if (error.response?.data?.errors) {
+      // Błędy walidacji z backendu będą wyświetlone przez Vee-Validate
+    }
   }
 }
 
