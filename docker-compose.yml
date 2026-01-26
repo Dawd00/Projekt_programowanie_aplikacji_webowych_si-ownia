@@ -71,7 +71,7 @@ services:
     environment:
       VITE_API_URL: http://localhost:${BACKEND_PORT:-3001}/api
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+      - "${FRONTEND_PORT:-3002}:3000"
     volumes:
       - ./frontend:/app
       - /app/node_modules
