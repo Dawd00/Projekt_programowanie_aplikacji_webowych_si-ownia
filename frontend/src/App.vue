@@ -13,10 +13,29 @@
     <v-main>
       <router-view />
     </v-main>
+
+    <!-- Global Snackbar for notifications -->
+    <v-snackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+      :timeout="snackbar.timeout"
+      location="top right"
+    >
+      {{ snackbar.text }}
+      <template v-slot:actions>
+        <v-btn variant="text" @click="snackbar.show = false">Zamknij</v-btn>
+      </template>
+    </v-snackbar>
   </v-app>
 </template>
 
 <script setup>
-// App component
+import { useToast } from './composables/useToast'
+import { provide } from 'vue'
+
+const { snackbar, showSuccess, showError, showInfo } = useToast()
+
+// Provide toast functions to all child components
+provide('toast', { showSuccess, showError, showInfo })
 </script>
 

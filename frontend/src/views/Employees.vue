@@ -79,10 +79,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { Form } from 'vee-validate'
 import * as yup from 'yup'
 import api from '../services/api'
+
+const toast = inject('toast')
 
 const employees = ref([])
 const loading = ref(false)
@@ -162,13 +164,17 @@ const saveEmployee = async (values) => {
   try {
     if (editingEmployee.value) {
       await api.patch(`/employees/${editingEmployee.value.id}`, values)
+      toast?.showSuccess('Pracownik został zaktualizowany')
     } else {
       await api.post('/employees', values)
+      toast?.showSuccess('Pracownik został utworzony')
     }
     dialog.value = false
     loadEmployees()
   } catch (error) {
     console.error('Error saving employee:', error)
+    const errorMessage = error.response?.data?.message || 'Wystąpił błąd podczas zapisywania pracownika'
+    toast?.showError(errorMessage)
   }
 }
 
@@ -176,9 +182,12 @@ const deleteEmployee = async (id) => {
   if (confirm('Czy na pewno chcesz usunąć tego pracownika?')) {
     try {
       await api.delete(`/employees/${id}`)
+      toast?.showSuccess('Pracownik został usunięty')
       loadEmployees()
     } catch (error) {
       console.error('Error deleting employee:', error)
+      const errorMessage = error.response?.data?.message || 'Wystąpił błąd podczas usuwania pracownika'
+      toast?.showError(errorMessage)
     }
   }
 }

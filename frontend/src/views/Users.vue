@@ -75,10 +75,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { Form } from 'vee-validate'
 import * as yup from 'yup'
 import api from '../services/api'
+
+const toast = inject('toast')
 
 const users = ref([])
 const loading = ref(false)
@@ -126,6 +128,7 @@ const loadUsers = async () => {
     pagination.value = response.pagination
   } catch (error) {
     console.error('Error loading users:', error)
+    toast?.showError('Wystąpił błąd podczas ładowania użytkowników')
   } finally {
     loading.value = false
   }
@@ -154,16 +157,17 @@ const saveUser = async (values) => {
     const dataToSave = editingUser.value ? { ...values } : { ...values, password: 'temp123' }
     if (editingUser.value) {
       await api.patch(`/users/${editingUser.value.id}`, dataToSave)
+      toast?.showSuccess('Użytkownik został zaktualizowany')
     } else {
       await api.post('/users', dataToSave)
+      toast?.showSuccess('Użytkownik został utworzony')
     }
     dialog.value = false
     loadUsers()
   } catch (error) {
     console.error('Error saving user:', error)
-    if (error.response?.data?.errors) {
-      // Błędy walidacji z backendu będą wyświetlone przez Vee-Validate
-    }
+    const errorMessage = error.response?.data?.message || 'Wystąpił błąd podczas zapisywania użytkownika'
+    toast?.showError(errorMessage)
   }
 }
 
@@ -171,9 +175,12 @@ const deleteUser = async (id) => {
   if (confirm('Czy na pewno chcesz usunąć tego użytkownika?')) {
     try {
       await api.delete(`/users/${id}`)
+      toast?.showSuccess('Użytkownik został usunięty')
       loadUsers()
     } catch (error) {
       console.error('Error deleting user:', error)
+      const errorMessage = error.response?.data?.message || 'Wystąpił błąd podczas usuwania użytkownika'
+      toast?.showError(errorMessage)
     }
   }
 }

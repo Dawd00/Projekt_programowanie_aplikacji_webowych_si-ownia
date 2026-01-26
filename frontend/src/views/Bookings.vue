@@ -68,10 +68,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { Form } from 'vee-validate'
 import * as yup from 'yup'
 import api from '../services/api'
+
+const toast = inject('toast')
 
 const bookings = ref([])
 const loading = ref(false)
@@ -143,13 +145,17 @@ const saveBooking = async (values) => {
   try {
     if (editingBooking.value) {
       await api.patch(`/bookings/${editingBooking.value.id}`, values)
+      toast?.showSuccess('Rezerwacja została zaktualizowana')
     } else {
       await api.post('/bookings', values)
+      toast?.showSuccess('Rezerwacja została utworzona')
     }
     dialog.value = false
     loadBookings()
   } catch (error) {
     console.error('Error saving booking:', error)
+    const errorMessage = error.response?.data?.message || 'Wystąpił błąd podczas zapisywania rezerwacji'
+    toast?.showError(errorMessage)
   }
 }
 
@@ -157,9 +163,12 @@ const deleteBooking = async (id) => {
   if (confirm('Czy na pewno chcesz usunąć tę rezerwację?')) {
     try {
       await api.delete(`/bookings/${id}`)
+      toast?.showSuccess('Rezerwacja została usunięta')
       loadBookings()
     } catch (error) {
       console.error('Error deleting booking:', error)
+      const errorMessage = error.response?.data?.message || 'Wystąpił błąd podczas usuwania rezerwacji'
+      toast?.showError(errorMessage)
     }
   }
 }

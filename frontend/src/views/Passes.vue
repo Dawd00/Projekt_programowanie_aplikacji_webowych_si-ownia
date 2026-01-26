@@ -78,10 +78,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { Form } from 'vee-validate'
 import * as yup from 'yup'
 import api from '../services/api'
+
+const toast = inject('toast')
 
 const passes = ref([])
 const loading = ref(false)
@@ -164,13 +166,17 @@ const savePass = async (values) => {
   try {
     if (editingPass.value) {
       await api.patch(`/passes/${editingPass.value.id}`, values)
+      toast?.showSuccess('Karnet został zaktualizowany')
     } else {
       await api.post('/passes', values)
+      toast?.showSuccess('Karnet został utworzony')
     }
     dialog.value = false
     loadPasses()
   } catch (error) {
     console.error('Error saving pass:', error)
+    const errorMessage = error.response?.data?.message || 'Wystąpił błąd podczas zapisywania karnetu'
+    toast?.showError(errorMessage)
   }
 }
 
@@ -178,9 +184,12 @@ const deletePass = async (id) => {
   if (confirm('Czy na pewno chcesz usunąć ten karnet?')) {
     try {
       await api.delete(`/passes/${id}`)
+      toast?.showSuccess('Karnet został usunięty')
       loadPasses()
     } catch (error) {
       console.error('Error deleting pass:', error)
+      const errorMessage = error.response?.data?.message || 'Wystąpił błąd podczas usuwania karnetu'
+      toast?.showError(errorMessage)
     }
   }
 }
