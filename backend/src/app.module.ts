@@ -14,6 +14,7 @@ import { RoomsModule } from './rooms/rooms.module';
 import { AuthModule } from './auth/auth.module';
 import { EmployeesModule } from './employees/employees.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { SeedModule } from './database/seeds/seed.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
     BookingsModule,
     RoomsModule,
     EmployeesModule,
+    SeedModule,
   ],
   controllers: [AppController],
   providers: [

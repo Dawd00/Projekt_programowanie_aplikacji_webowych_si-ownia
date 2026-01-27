@@ -72,6 +72,31 @@ curl -X POST http://localhost:3001/api/auth/login \
   }'
 ```
 
+5. **Wypełnij bazę przykładowymi danymi (opcjonalnie)**:
+```bash
+# W kontenerze Docker
+docker compose exec backend npm run seed
+
+# Lub lokalnie (jeśli backend działa lokalnie)
+cd backend
+npm run seed
+```
+
+**Przykładowe dane zawierają:**
+- 7 użytkowników (1 admin, 3 klientów, 2 trenerów, 1 pracownik)
+- 4 sale
+- 2 trenerów z profilami
+- 1 pracownika
+- 4 karnety
+- 28 sesji (na 7 dni)
+- 4 rezerwacje
+
+**Dane logowania po seedowaniu:**
+- Admin: `admin@gym.pl` / `password123`
+- Klient 1: `klient1@gym.pl` / `password123`
+- Trener 1: `trener1@gym.pl` / `password123`
+- Pracownik: `pracownik1@gym.pl` / `password123`
+
 ### Zatrzymanie
 ```bash
 docker compose down
@@ -493,15 +518,3 @@ Commity zgodne z [Conventional Commits](https://www.conventionalcommits.org/).
 - Testy jednostkowe (opcjonalnie)
 - Role-based Access Control (opcjonalnie)
 - Migracje TypeORM dla produkcji
-
----
-
-## 📄 Licencja
-
-MIT
-
----
-
-## 👨‍💻 Autorzy
-
-Projekt na potrzeby kursu Programowania Aplikacji Webowych.
