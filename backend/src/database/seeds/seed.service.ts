@@ -237,8 +237,9 @@ export class SeedService {
         userId: clients[0].id,
         type: PassType.QUARTERLY,
         price: 400.0,
-        startDate: new Date(today.getFullYear(), today.getMonth() - 1, 1),
-        endDate: new Date(today.getFullYear(), today.getMonth() + 2, 0),
+        // QUARTERLY zaczyna się po zakończeniu MONTHLY, żeby uniknąć nakładania się
+        startDate: new Date(today.getFullYear(), today.getMonth() + 1, 1),
+        endDate: new Date(today.getFullYear(), today.getMonth() + 4, 0),
         isActive: true,
       },
       {

@@ -2,9 +2,14 @@
   <v-app>
     <v-app-bar color="primary" prominent>
       <v-app-bar-title>
-        <template v-if="isAuthenticated">Witaj {{ displayName }}!</template>
-        <template v-else>Panel Siłowni</template>
+        <router-link to="/" style="text-decoration: none; color: inherit; cursor: pointer;">
+          Panel Siłowni
+        </router-link>
       </v-app-bar-title>
+      <v-spacer></v-spacer>
+      <template v-if="isAuthenticated">
+        <span class="text-body-1">Witaj {{ displayName }}!</span>
+      </template>
       <v-spacer></v-spacer>
       <template v-if="isAuthenticated">
         <v-btn @click="handleLogout" variant="text">Wyloguj</v-btn>

@@ -3,7 +3,9 @@
     <v-row>
       <v-col cols="12">
         <h1 class="text-h4 mb-4">Rezerwacje</h1>
-        <v-btn color="primary" @click="openDialog" class="mb-4">Dodaj rezerwację</v-btn>
+        <v-btn color="primary" @click="openDialog" class="mb-4">
+          {{ isClient ? 'Zapisz się na zajęcia / Zarezerwuj salę' : 'Dodaj rezerwację' }}
+        </v-btn>
       </v-col>
     </v-row>
 
@@ -30,7 +32,7 @@
     <!-- Dialog for create/edit -->
     <v-dialog v-model="dialog" max-width="500">
       <v-card>
-        <v-card-title>{{ editingBooking ? 'Edytuj rezerwację' : 'Dodaj rezerwację' }}</v-card-title>
+        <v-card-title>{{ editingBooking ? 'Edytuj rezerwację' : (isClient ? 'Zapisz się na zajęcia / Zarezerwuj salę' : 'Dodaj rezerwację') }}</v-card-title>
         <v-card-text>
           <Form @submit="saveBooking" :validation-schema="schema" v-slot="{ errors }">
             <v-select
@@ -51,11 +53,13 @@
             ></v-select>
             <v-select
               v-model="formData.sessionId"
-              label="Godzina"
+              :label="isClient ? 'Godzina i typ zajęć' : 'Godzina'"
               :items="sessionOptions"
               item-title="label"
               item-value="id"
               :error-messages="errors.sessionId"
+              :hint="isClient ? 'Wybierz zajęcia grupowe lub zarezerwuj salę na trening personalny' : ''"
+              persistent-hint
               required
             ></v-select>
             <v-select
@@ -105,6 +109,7 @@ const headers = [
   { title: 'Sala', key: 'roomName' },
   { title: 'Data', key: 'sessionDate' },
   { title: 'Godzina', key: 'sessionTime' },
+  { title: 'Typ', key: 'sessionType' },
   { title: 'Status', key: 'status' },
   { title: 'Data utworzenia', key: 'createdAt' },
   { title: 'Akcje', key: 'actions', sortable: false },
@@ -129,6 +134,7 @@ const formData = ref({
 })
 
 const role = computed(() => currentUser.value?.role || null)
+const isClient = computed(() => role.value === 'CLIENT')
 const canManageStatus = computed(() => ['ADMIN', 'EMPLOYEE'].includes(role.value))
 
 const roomOptions = computed(() => rooms.value)
@@ -151,16 +157,25 @@ const dateOptions = computed(() => {
 
 const sessionOptions = computed(() => {
   if (!formData.value.roomId || !formData.value.date) return []
-  return sessions.value
-    .filter(
-      (s) =>
-        s.roomId === formData.value.roomId &&
-        dateKey(s.date) === formData.value.date,
-    )
-    .map((s) => ({
+  const filteredSessions = sessions.value.filter(
+    (s) =>
+      s.roomId === formData.value.roomId &&
+      dateKey(s.date) === formData.value.date,
+  )
+  
+  return filteredSessions.map((s) => {
+    let label = `${s.startTime} - ${s.endTime}`
+    if (s.type === 'GROUP') {
+      label += ` (Zajęcia grupowe)`
+    } else {
+      label += ` (Trening personalny)`
+    }
+    return {
       id: s.id,
-      label: `${s.startTime} - ${s.endTime}`,
-    }))
+      label,
+      type: s.type,
+    }
+  })
 })
 
 const roomsById = computed(() => {
@@ -188,6 +203,7 @@ const bookingsWithSession = computed(() =>
       roomName: room?.name || '—',
       sessionDate: session ? dateKey(session.date) : '—',
       sessionTime: session ? `${session.startTime} - ${session.endTime}` : '—',
+      sessionType: session?.type === 'GROUP' ? 'Zajęcia grupowe' : session?.type === 'PERSONAL' ? 'Trening personalny' : '—',
     }
   }),
 )

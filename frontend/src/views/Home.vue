@@ -10,8 +10,8 @@
     </v-row>
 
     <v-row class="mt-4">
-      <v-col v-if="canManageUsers" cols="12" md="4">
-        <v-card>
+      <v-col cols="12" md="4">
+        <v-card v-if="canManageUsers">
           <v-card-title>Użytkownicy</v-card-title>
           <v-card-text>
             Zarządzaj użytkownikami systemu - klientami, trenerami i pracownikami.
@@ -20,13 +20,24 @@
             <v-btn to="/users" color="primary">Przejdź</v-btn>
           </v-card-actions>
         </v-card>
+        <v-card v-else style="opacity: 0.5; pointer-events: none;">
+          <v-card-title>Użytkownicy</v-card-title>
+          <v-card-text>
+            Funkcja dostępna tylko dla administratorów i pracowników.
+          </v-card-text>
+        </v-card>
       </v-col>
 
-      <v-col v-if="canManagePasses" cols="12" md="4">
+      <v-col cols="12" md="4">
         <v-card>
           <v-card-title>Karnety</v-card-title>
           <v-card-text>
-            Zarządzaj karnetami klientów - dodawaj, edytuj i przeglądaj karnety.
+            <template v-if="canManagePasses">
+              Zarządzaj karnetami klientów - dodawaj, edytuj i przeglądaj karnety.
+            </template>
+            <template v-else>
+              Przeglądaj i kupuj karnety na zajęcia w siłowni.
+            </template>
           </v-card-text>
           <v-card-actions>
             <v-btn to="/passes" color="primary">Przejdź</v-btn>
@@ -46,8 +57,8 @@
         </v-card>
       </v-col>
 
-      <v-col v-if="canManageEmployees" cols="12" md="4">
-        <v-card>
+      <v-col cols="12" md="4">
+        <v-card v-if="canManageEmployees">
           <v-card-title>Pracownicy</v-card-title>
           <v-card-text>
             Zarządzaj pracownikami siłowni - recepcja, zarząd, konserwacja.
@@ -55,6 +66,12 @@
           <v-card-actions>
             <v-btn to="/employees" color="primary">Przejdź</v-btn>
           </v-card-actions>
+        </v-card>
+        <v-card v-else style="opacity: 0.5; pointer-events: none;">
+          <v-card-title>Pracownicy</v-card-title>
+          <v-card-text>
+            Funkcja dostępna tylko dla administratorów i pracowników.
+          </v-card-text>
         </v-card>
       </v-col>
     </v-row>

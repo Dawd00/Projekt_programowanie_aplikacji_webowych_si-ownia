@@ -27,7 +27,7 @@ const router = createRouter({
       path: '/passes',
       name: 'passes',
       component: () => import('../views/Passes.vue'),
-      beforeEnter: requireRole(['ADMIN', 'EMPLOYEE']),
+      beforeEnter: requireAuth,
     },
     {
       path: '/bookings',

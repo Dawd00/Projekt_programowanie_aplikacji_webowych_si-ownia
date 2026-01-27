@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Pass } from './entities/pass.entity';
@@ -13,6 +13,30 @@ export class PassesService {
   ) {}
 
   async create(createPassDto: CreatePassDto): Promise<Pass> {
+    // Sprawdź czy użytkownik nie ma już karnetu w nakładającym się zakresie dat
+    const existingPasses = await this.passesRepository.find({
+      where: { userId: createPassDto.userId },
+    });
+
+    const newStartDate = new Date(createPassDto.startDate);
+    const newEndDate = new Date(createPassDto.endDate);
+
+    for (const existingPass of existingPasses) {
+      const existingStartDate = new Date(existingPass.startDate);
+      const existingEndDate = new Date(existingPass.endDate);
+
+      // Sprawdź czy zakresy dat się nakładają
+      // Dwa zakresy nakładają się jeśli: startDate nowego <= endDate istniejącego AND endDate nowego >= startDate istniejącego
+      if (
+        newStartDate <= existingEndDate &&
+        newEndDate >= existingStartDate
+      ) {
+        throw new BadRequestException(
+          `Użytkownik ma już aktywny karnet w zakresie dat ${existingStartDate.toLocaleDateString('pl-PL')} - ${existingEndDate.toLocaleDateString('pl-PL')}. Zakresy dat nie mogą się nakładać.`,
+        );
+      }
+    }
+
     const pass = this.passesRepository.create(createPassDto);
     return await this.passesRepository.save(pass);
   }
