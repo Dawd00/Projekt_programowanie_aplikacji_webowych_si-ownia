@@ -385,6 +385,51 @@ Szczegółowy opis: [docs/MODEL_DANYCH.md](./docs/MODEL_DANYCH.md)
 - `POST /api/auth/register` - Rejestracja (publiczne)
 - `POST /api/auth/login` - Logowanie (publiczne)
 
+### Rejestracja użytkownika (jak użyć)
+
+- **Przez Swagger UI**
+  - Otwórz `http://localhost:3001/api/docs`
+  - Rozwiń sekcję `auth`
+  - Wybierz `POST /auth/register`
+  - Kliknij **Try it out** i wstaw przykładowe body:
+
+```json
+{
+  "email": "nowy.user@gym.pl",
+  "password": "password123",
+  "firstName": "Nowy",
+  "lastName": "User",
+  "role": "CLIENT",
+  "phone": "+48123456789"
+}
+```
+
+- **Przez curl / Postman**
+
+```bash
+curl -X POST http://localhost:3001/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "nowy.user@gym.pl",
+    "password": "password123",
+    "firstName": "Nowy",
+    "lastName": "User",
+    "role": "CLIENT",
+    "phone": "+48123456789"
+  }'
+```
+
+- **Wymagane pola (`RegisterDto`)**
+  - **email**: poprawny adres email
+  - **password**: min. 8 znaków
+  - **firstName**: imię
+  - **lastName**: nazwisko
+  - **role**: jedna z wartości `ADMIN`, `EMPLOYEE`, `TRAINER`, `CLIENT`  
+    (dla zwykłego użytkownika używaj `CLIENT`)
+  - **phone**: opcjonalny numer telefonu
+
+Po rejestracji można od razu zalogować się przez `POST /api/auth/login` lub formularz logowania we frontendzie.
+
 ### Użytkownicy
 - `GET /api/users` - Lista (paginacja, wymaga autoryzacji)
 - `GET /api/users/:id` - Szczegóły
@@ -504,20 +549,3 @@ Token otrzymujesz po zalogowaniu przez `/api/auth/login`.
 
 Commity zgodne z [Conventional Commits](https://www.conventionalcommits.org/).
 
----
-
-## 📊 Status Projektu
-
-- **Ćwiczenie 5**: 100% ✅
-- **Ćwiczenie 6**: 100% ✅
-- **Ćwiczenie 7**: 80% ✅ (brak testów - opcjonalne)
-
-**Ogólny postęp: ~95%** - Projekt gotowy do prezentacji!
-
----
-
-## 🐛 Znane Problemy / TODO
-
-- Testy jednostkowe (opcjonalnie)
-- Role-based Access Control (opcjonalnie)
-- Migracje TypeORM dla produkcji
