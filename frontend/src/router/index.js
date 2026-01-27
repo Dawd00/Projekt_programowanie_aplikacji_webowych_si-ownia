@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { requireAuth, requireGuest } from './guards'
+import { requireAuth, requireGuest, requireRole } from './guards'
 import Home from '../views/Home.vue'
 
 const router = createRouter({
@@ -21,13 +21,13 @@ const router = createRouter({
       path: '/users',
       name: 'users',
       component: () => import('../views/Users.vue'),
-      beforeEnter: requireAuth,
+      beforeEnter: requireRole(['ADMIN', 'EMPLOYEE']),
     },
     {
       path: '/passes',
       name: 'passes',
       component: () => import('../views/Passes.vue'),
-      beforeEnter: requireAuth,
+      beforeEnter: requireRole(['ADMIN', 'EMPLOYEE']),
     },
     {
       path: '/bookings',
@@ -39,7 +39,7 @@ const router = createRouter({
       path: '/employees',
       name: 'employees',
       component: () => import('../views/Employees.vue'),
-      beforeEnter: requireAuth,
+      beforeEnter: requireRole(['ADMIN', 'EMPLOYEE']),
     },
   ],
 })

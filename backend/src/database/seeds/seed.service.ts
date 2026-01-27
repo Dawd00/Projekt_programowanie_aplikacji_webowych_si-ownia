@@ -57,13 +57,14 @@ export class SeedService {
 
   private async clearDatabase() {
     console.log('🧹 Czyszczenie bazy danych...');
-    await this.bookingsRepository.delete({});
-    await this.sessionsRepository.delete({});
-    await this.passesRepository.delete({});
-    await this.trainersRepository.delete({});
-    await this.employeesRepository.delete({});
-    await this.roomsRepository.delete({});
-    await this.usersRepository.delete({});
+    // Usuwanie w kolejności uwzględniającej klucze obce
+    await this.bookingsRepository.createQueryBuilder().delete().execute();
+    await this.sessionsRepository.createQueryBuilder().delete().execute();
+    await this.passesRepository.createQueryBuilder().delete().execute();
+    await this.trainersRepository.createQueryBuilder().delete().execute();
+    await this.employeesRepository.createQueryBuilder().delete().execute();
+    await this.roomsRepository.createQueryBuilder().delete().execute();
+    await this.usersRepository.createQueryBuilder().delete().execute();
   }
 
   private async createUsers(): Promise<User[]> {

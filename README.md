@@ -299,6 +299,9 @@ docker compose exec frontend npm install
 | Plik | Opis |
 |------|------|
 | `database.module.ts` | Konfiguracja TypeORM z PostgreSQL |
+| `seeds/seed.service.ts` | Serwis do wypełniania bazy przykładowymi danymi |
+| `seeds/seed.module.ts` | Moduł seed (rejestruje repozytoria) |
+| `seeds/seed.ts` | Skrypt uruchamiający seedowanie (`npm run seed`) |
 
 ### 📂 `frontend/`
 

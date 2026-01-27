@@ -1,18 +1,16 @@
 <template>
   <v-app>
     <v-app-bar color="primary" prominent>
-      <v-app-bar-title>Panel Siłowni</v-app-bar-title>
+      <v-app-bar-title>
+        <template v-if="isAuthenticated">Witaj {{ displayName }}!</template>
+        <template v-else>Panel Siłowni</template>
+      </v-app-bar-title>
       <v-spacer></v-spacer>
       <template v-if="isAuthenticated">
-        <v-btn to="/" variant="text">Strona główna</v-btn>
-        <v-btn to="/users" variant="text">Użytkownicy</v-btn>
-        <v-btn to="/passes" variant="text">Karnety</v-btn>
-        <v-btn to="/bookings" variant="text">Rezerwacje</v-btn>
-        <v-btn to="/employees" variant="text">Pracownicy</v-btn>
         <v-btn @click="handleLogout" variant="text">Wyloguj</v-btn>
       </template>
       <template v-else>
-        <v-btn to="/login" variant="text">Zaloguj</v-btn>
+        <v-btn v-if="showLoginButton" to="/login" variant="text">Zaloguj</v-btn>
       </template>
     </v-app-bar>
 
@@ -37,10 +35,11 @@
 
 <script setup>
 import { ref, computed, onMounted, provide } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useToast } from './composables/useToast'
 
 const router = useRouter()
+const route = useRoute()
 const { snackbar, showSuccess, showError, showInfo } = useToast()
 
 // Provide toast functions to all child components
@@ -50,6 +49,18 @@ const user = ref(null)
 
 const isAuthenticated = computed(() => {
   return !!localStorage.getItem('token')
+})
+
+const showLoginButton = computed(() => {
+  return !isAuthenticated.value && route.path !== '/login'
+})
+
+const displayName = computed(() => {
+  if (!user.value) return 'Użytkowniku'
+  const firstName = user.value.firstName || ''
+  const lastName = user.value.lastName || ''
+  const fullName = `${firstName} ${lastName}`.trim()
+  return fullName || user.value.email || 'Użytkowniku'
 })
 
 const handleLogout = () => {

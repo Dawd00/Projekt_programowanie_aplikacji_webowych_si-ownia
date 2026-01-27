@@ -10,7 +10,7 @@
     </v-row>
 
     <v-row class="mt-4">
-      <v-col cols="12" md="4">
+      <v-col v-if="canManageUsers" cols="12" md="4">
         <v-card>
           <v-card-title>Użytkownicy</v-card-title>
           <v-card-text>
@@ -22,7 +22,7 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" md="4">
+      <v-col v-if="canManagePasses" cols="12" md="4">
         <v-card>
           <v-card-title>Karnety</v-card-title>
           <v-card-text>
@@ -46,7 +46,7 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" md="4">
+      <v-col v-if="canManageEmployees" cols="12" md="4">
         <v-card>
           <v-card-title>Pracownicy</v-card-title>
           <v-card-text>
@@ -62,6 +62,24 @@
 </template>
 
 <script setup>
-// Home view
+import { computed, ref, onMounted } from 'vue'
+
+const user = ref(null)
+
+const role = computed(() => user.value?.role || null)
+const canManageUsers = computed(() => ['ADMIN', 'EMPLOYEE'].includes(role.value))
+const canManagePasses = computed(() => ['ADMIN', 'EMPLOYEE'].includes(role.value))
+const canManageEmployees = computed(() => ['ADMIN', 'EMPLOYEE'].includes(role.value))
+
+onMounted(() => {
+  const userData = localStorage.getItem('user')
+  if (userData) {
+    try {
+      user.value = JSON.parse(userData)
+    } catch (e) {
+      console.error('Error parsing user data:', e)
+    }
+  }
+})
 </script>
 
