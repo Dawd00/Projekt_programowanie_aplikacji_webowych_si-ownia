@@ -153,6 +153,188 @@ docker compose exec frontend npm install
 
 ---
 
+## 📁 Szczegółowy Spis Plików
+
+### 📂 Główny katalog
+
+| Plik | Opis |
+|------|------|
+| `README.md` | Główna dokumentacja projektu (z Quick Start) |
+| `docker-compose.yml` | Konfiguracja Docker dla 4 serwisów (db, adminer, backend, frontend) |
+| `.env.example` | Przykładowe zmienne środowiskowe |
+
+### 📂 `backend/`
+
+#### Główne pliki
+| Plik | Opis |
+|------|------|
+| `package.json` | Zależności i skrypty backendu |
+| `Dockerfile` | Obraz Docker dla NestJS |
+| `tsconfig.json` | Konfiguracja TypeScript |
+| `nest-cli.json` | Konfiguracja NestJS CLI |
+
+#### `backend/src/`
+
+| Plik | Opis |
+|------|------|
+| `main.ts` | Punkt wejścia aplikacji (CORS, walidacja, Swagger, exception filter) |
+| `app.module.ts` | Główny moduł NestJS (importuje wszystkie moduły, globalny JwtAuthGuard) |
+| `app.controller.ts` | Kontroler główny (`/health` endpoint) |
+| `app.service.ts` | Serwis główny |
+
+#### `backend/src/auth/` - Autoryzacja JWT
+| Plik | Opis |
+|------|------|
+| `auth.module.ts` | Moduł autoryzacji (JWT, Passport) |
+| `auth.service.ts` | Rejestracja, logowanie, generowanie tokenów JWT |
+| `auth.controller.ts` | Endpointy: `/register`, `/login`, `/profile` |
+| `dto/register.dto.ts` | DTO dla rejestracji |
+| `dto/login.dto.ts` | DTO dla logowania |
+| `guards/jwt-auth.guard.ts` | Guard chroniący endpointy (sprawdza token JWT) |
+| `strategies/jwt.strategy.ts` | Strategia Passport dla JWT |
+| `decorators/public.decorator.ts` | Dekorator `@Public()` dla publicznych endpointów |
+| `decorators/current-user.decorator.ts` | Dekorator `@CurrentUser()` do pobierania użytkownika z requestu |
+
+#### `backend/src/users/` - Użytkownicy
+| Plik | Opis |
+|------|------|
+| `users.module.ts` | Moduł użytkowników |
+| `users.service.ts` | Logika biznesowa (CRUD, paginacja) |
+| `users.controller.ts` | Endpointy: `/users`, `/users/:id`, `/users/:id/passes`, `/users/:id/bookings` |
+| `entities/user.entity.ts` | Encja User (TypeORM) |
+| `dto/create-user.dto.ts` | DTO do tworzenia użytkownika |
+| `dto/update-user.dto.ts` | DTO do aktualizacji użytkownika |
+
+#### `backend/src/passes/` - Karnety
+| Plik | Opis |
+|------|------|
+| `passes.module.ts` | Moduł karnetów |
+| `passes.service.ts` | Logika biznesowa (CRUD, paginacja) |
+| `passes.controller.ts` | Endpointy: `/passes` (GET, POST, PATCH, DELETE) |
+| `entities/pass.entity.ts` | Encja Pass (TypeORM) |
+| `dto/create-pass.dto.ts` | DTO do tworzenia karnetu |
+| `dto/update-pass.dto.ts` | DTO do aktualizacji karnetu |
+
+#### `backend/src/trainers/` - Trenerzy
+| Plik | Opis |
+|------|------|
+| `trainers.module.ts` | Moduł trenerów |
+| `trainers.service.ts` | Logika biznesowa (CRUD, paginacja) |
+| `trainers.controller.ts` | Endpointy: `/trainers`, `/trainers/:id/sessions` |
+| `entities/trainer.entity.ts` | Encja Trainer (TypeORM) |
+| `dto/create-trainer.dto.ts` | DTO do tworzenia trenera |
+| `dto/update-trainer.dto.ts` | DTO do aktualizacji trenera |
+
+#### `backend/src/employees/` - Pracownicy
+| Plik | Opis |
+|------|------|
+| `employees.module.ts` | Moduł pracowników |
+| `employees.service.ts` | Logika biznesowa (CRUD, paginacja) |
+| `employees.controller.ts` | Endpointy: `/employees` (GET, POST, PATCH, DELETE) |
+| `entities/employee.entity.ts` | Encja Employee (TypeORM) |
+| `dto/create-employee.dto.ts` | DTO do tworzenia pracownika |
+| `dto/update-employee.dto.ts` | DTO do aktualizacji pracownika |
+
+#### `backend/src/sessions/` - Sesje/Zajęcia
+| Plik | Opis |
+|------|------|
+| `sessions.module.ts` | Moduł sesji |
+| `sessions.service.ts` | Logika biznesowa (CRUD, paginacja) |
+| `sessions.controller.ts` | Endpointy: `/sessions` (GET, POST, PATCH, DELETE) |
+| `entities/session.entity.ts` | Encja Session (TypeORM) |
+| `dto/create-session.dto.ts` | DTO do tworzenia sesji |
+| `dto/update-session.dto.ts` | DTO do aktualizacji sesji |
+
+#### `backend/src/bookings/` - Rezerwacje
+| Plik | Opis |
+|------|------|
+| `bookings.module.ts` | Moduł rezerwacji |
+| `bookings.service.ts` | Logika biznesowa (CRUD, paginacja) |
+| `bookings.controller.ts` | Endpointy: `/bookings` (GET, POST, PATCH, DELETE) |
+| `entities/booking.entity.ts` | Encja Booking (TypeORM) |
+| `dto/create-booking.dto.ts` | DTO do tworzenia rezerwacji |
+| `dto/update-booking.dto.ts` | DTO do aktualizacji rezerwacji |
+
+#### `backend/src/rooms/` - Sale
+| Plik | Opis |
+|------|------|
+| `rooms.module.ts` | Moduł sal |
+| `rooms.service.ts` | Logika biznesowa (CRUD, paginacja) |
+| `rooms.controller.ts` | Endpointy: `/rooms` (GET, POST, PATCH, DELETE) |
+| `entities/room.entity.ts` | Encja Room (TypeORM) |
+| `dto/create-room.dto.ts` | DTO do tworzenia sali |
+| `dto/update-room.dto.ts` | DTO do aktualizacji sali |
+
+#### `backend/src/common/` - Wspólne komponenty
+| Plik | Opis |
+|------|------|
+| `filters/http-exception.filter.ts` | Globalny exception filter (spójny format błędów) |
+
+#### `backend/src/database/` - Baza danych
+| Plik | Opis |
+|------|------|
+| `database.module.ts` | Konfiguracja TypeORM z PostgreSQL |
+
+### 📂 `frontend/`
+
+#### Główne pliki
+| Plik | Opis |
+|------|------|
+| `package.json` | Zależności i skrypty frontendu |
+| `Dockerfile` | Obraz Docker dla Vue |
+| `vite.config.js` | Konfiguracja Vite |
+| `index.html` | Główny plik HTML |
+
+#### `frontend/src/`
+
+| Plik | Opis |
+|------|------|
+| `main.js` | Punkt wejścia aplikacji Vue (Vuetify, Router, Pinia) |
+| `App.vue` | Główny komponent (nawigacja, snackbar dla toastów) |
+| `style.css` | Globalne style CSS |
+
+#### `frontend/src/views/` - Widoki
+| Plik | Opis |
+|------|------|
+| `Home.vue` | Strona główna z kartami nawigacyjnymi |
+| `Login.vue` | Formularz logowania (Vee-Validate + Yup) |
+| `Users.vue` | Lista użytkowników z CRUD (tabela, dialogi, walidacja) |
+| `Passes.vue` | Lista karnetów z CRUD (tabela, dialogi, walidacja) |
+| `Bookings.vue` | Lista rezerwacji z CRUD (tabela, dialogi, walidacja) |
+| `Employees.vue` | Lista pracowników z CRUD (tabela, dialogi, walidacja) |
+
+#### `frontend/src/router/` - Routing
+| Plik | Opis |
+|------|------|
+| `index.js` | Konfiguracja Vue Router (trasy, guards) |
+| `guards.js` | Router guards (`requireAuth`, `requireGuest`) |
+
+#### `frontend/src/services/` - Serwisy
+| Plik | Opis |
+|------|------|
+| `api.js` | Instancja Axios z interceptors (dodawanie tokena, obsługa 401) |
+
+#### `frontend/src/composables/` - Composables
+| Plik | Opis |
+|------|------|
+| `useToast.js` | Composable do wyświetlania toast notifications (Vuetify snackbar) |
+
+#### `frontend/src/plugins/` - Pluginy
+| Plik | Opis |
+|------|------|
+| `vuetify.js` | Konfiguracja Vuetify (temat, komponenty) |
+
+### 📂 `docs/` - Dokumentacja
+
+| Plik | Opis |
+|------|------|
+| `MODEL_DANYCH.md` | Szczegółowy model danych z diagramem ERD i opisami 7 tabel |
+| `API_CONTRACT.md` | Pełna dokumentacja wszystkich endpointów API (request/response, kody HTTP) |
+| `UI_MOCKUPS.md` | Makiet interfejsu użytkownika dla głównych widoków |
+| `DECISIONS.md` | Uzasadnienie decyzji projektowych (technologie, architektura) |
+
+---
+
 ## 🗄️ Model Danych
 
 System zawiera **7 tabel** z relacjami:
