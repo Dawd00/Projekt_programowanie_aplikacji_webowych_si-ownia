@@ -34,21 +34,21 @@
       <v-card>
         <v-card-title>{{ editingBooking ? 'Edytuj rezerwację' : (isClient ? 'Zapisz się na zajęcia / Zarezerwuj salę' : 'Dodaj rezerwację') }}</v-card-title>
         <v-card-text>
-          <Form @submit="saveBooking" :validation-schema="schema" v-slot="{ errors }">
+          <form @submit.prevent="saveBooking">
             <v-select
               v-model="formData.roomId"
               label="Sala"
               :items="roomOptions"
               item-title="name"
               item-value="id"
-              :error-messages="errors.roomId"
+              :error-messages="formErrors.roomId"
               required
             ></v-select>
             <v-select
               v-model="formData.date"
               label="Data"
               :items="dateOptions"
-              :error-messages="errors.date"
+              :error-messages="formErrors.date"
               required
             ></v-select>
             <v-select
@@ -57,7 +57,7 @@
               :items="sessionOptions"
               item-title="label"
               item-value="id"
-              :error-messages="errors.sessionId"
+              :error-messages="formErrors.sessionId"
               :hint="isClient ? 'Wybierz zajęcia grupowe lub zarezerwuj salę na trening personalny' : ''"
               persistent-hint
               required
@@ -67,20 +67,20 @@
               v-model="formData.status"
               label="Status"
               :items="statuses"
-              :error-messages="errors.status"
+              :error-messages="formErrors.status"
               required
             ></v-select>
             <v-textarea
               v-model="formData.notes"
               label="Notatki"
-              :error-messages="errors.notes"
+              :error-messages="formErrors.notes"
             ></v-textarea>
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn @click="dialog = false">Anuluj</v-btn>
               <v-btn type="submit" color="primary">Zapisz</v-btn>
             </v-card-actions>
-          </Form>
+          </form>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -89,7 +89,6 @@
 
 <script setup>
 import { ref, onMounted, inject, computed, watch } from 'vue'
-import { Form } from 'vee-validate'
 import * as yup from 'yup'
 import api from '../services/api'
 
@@ -132,6 +131,8 @@ const formData = ref({
   status: 'PENDING',
   notes: '',
 })
+
+const formErrors = ref({})
 
 const role = computed(() => currentUser.value?.role || null)
 const isClient = computed(() => role.value === 'CLIENT')
@@ -213,6 +214,9 @@ watch(
   () => {
     formData.value.date = ''
     formData.value.sessionId = ''
+    if (formErrors.value.roomId) formErrors.value.roomId = ''
+    if (formErrors.value.date) formErrors.value.date = ''
+    if (formErrors.value.sessionId) formErrors.value.sessionId = ''
   },
 )
 
@@ -220,6 +224,8 @@ watch(
   () => formData.value.date,
   () => {
     formData.value.sessionId = ''
+    if (formErrors.value.date) formErrors.value.date = ''
+    if (formErrors.value.sessionId) formErrors.value.sessionId = ''
   },
 )
 
@@ -278,6 +284,7 @@ const openDialog = () => {
     status: 'PENDING',
     notes: '',
   }
+  formErrors.value = {}
   dialog.value = true
 }
 
@@ -291,11 +298,35 @@ const editBooking = (booking) => {
     status: booking.status || 'PENDING',
     notes: booking.notes || '',
   }
+  formErrors.value = {}
   dialog.value = true
+}
+
+const validateForm = async () => {
+  try {
+    await schema.validate(formData.value, { abortEarly: false })
+    formErrors.value = {}
+    return true
+  } catch (error) {
+    const errors = {}
+    if (error?.inner?.length) {
+      error.inner.forEach((err) => {
+        if (err.path && !errors[err.path]) {
+          errors[err.path] = err.message
+        }
+      })
+    } else if (error?.path) {
+      errors[error.path] = error.message
+    }
+    formErrors.value = errors
+    return false
+  }
 }
 
 const saveBooking = async () => {
   const values = { ...formData.value }
+  const isValid = await validateForm()
+  if (!isValid) return
   try {
     if (!currentUser.value?.id) {
       toast?.showError('Brak danych użytkownika. Zaloguj się ponownie.')

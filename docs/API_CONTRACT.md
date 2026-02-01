@@ -11,6 +11,13 @@ Wszystkie endpointy (oprócz rejestracji/logowania) wymagają nagłówka:
 Authorization: Bearer <API_KEY>
 ```
 
+## Autoryzacja - role (RBAC)
+- **ADMIN / EMPLOYEE**: pełny dostęp do `users`, `employees`, `passes`, `bookings`
+- **CLIENT**:
+  - `users`, `employees` → brak dostępu (403)
+  - `passes` → tylko własne karnety, brak edycji/usuwania
+  - `bookings` → tylko własne rezerwacje, brak zmiany statusu
+
 ## Format Odpowiedzi
 
 ### Sukces
@@ -109,6 +116,7 @@ Logowanie użytkownika.
 ---
 
 ### 2. Użytkownicy (Users)
+**Dostęp:** tylko `ADMIN`, `EMPLOYEE`
 
 #### GET /users
 Lista użytkowników z paginacją.
@@ -181,6 +189,9 @@ Usunięcie użytkownika.
 ---
 
 ### 3. Karnety (Passes)
+**Dostęp:**
+- `ADMIN/EMPLOYEE`: pełny
+- `CLIENT`: tylko własne karnety, brak `PUT/DELETE`
 
 #### POST /passes
 Utworzenie nowego karnetu.
@@ -353,6 +364,9 @@ Sesje trenera.
 ---
 
 ### 6. Rezerwacje (Bookings)
+**Dostęp:**
+- `ADMIN/EMPLOYEE`: pełny
+- `CLIENT`: tylko własne rezerwacje, brak zmiany statusu
 
 #### POST /bookings
 Utworzenie rezerwacji.

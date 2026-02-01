@@ -14,8 +14,10 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { EmployeesService } from './employees.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @ApiTags('employees')
+@Roles('ADMIN', 'EMPLOYEE')
 @Controller('employees')
 export class EmployeesController {
   constructor(private readonly employeesService: EmployeesService) {}

@@ -42,40 +42,43 @@
       <v-card>
         <v-card-title>{{ editingPass ? 'Edytuj karnet' : (isClient ? 'Kup karnet' : 'Dodaj karnet') }}</v-card-title>
         <v-card-text>
-          <Form @submit="savePass" :validation-schema="schema.value" v-slot="{ errors }">
+          <form @submit.prevent="savePass">
             <v-text-field
               v-if="isAdminOrEmployee"
               v-model="formData.userId"
               label="ID Użytkownika"
-              :error-messages="errors.userId"
+              :error-messages="formErrors.userId"
               required
             ></v-text-field>
             <v-select
               v-model="formData.type"
               label="Typ"
               :items="passTypes"
-              :error-messages="errors.type"
+              :error-messages="formErrors.type"
               required
             ></v-select>
             <v-text-field
               v-model="formData.price"
               label="Cena"
-              type="number"
-              :error-messages="errors.price"
+              type="text"
+              suffix="zł"
+              :error-messages="formErrors.price"
+              readonly
               required
             ></v-text-field>
             <v-text-field
               v-model="formData.startDate"
               label="Data rozpoczęcia"
               type="date"
-              :error-messages="errors.startDate"
+              :error-messages="formErrors.startDate"
               required
             ></v-text-field>
             <v-text-field
               v-model="formData.endDate"
               label="Data zakończenia"
               type="date"
-              :error-messages="errors.endDate"
+              :error-messages="formErrors.endDate"
+              readonly
               required
             ></v-text-field>
             <v-card-actions>
@@ -83,7 +86,7 @@
               <v-btn @click="dialog = false">Anuluj</v-btn>
               <v-btn type="submit" color="primary">Zapisz</v-btn>
             </v-card-actions>
-          </Form>
+          </form>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -92,7 +95,6 @@
 
 <script setup>
 import { ref, computed, onMounted, inject, watch } from 'vue'
-import { Form } from 'vee-validate'
 import * as yup from 'yup'
 import api from '../services/api'
 
@@ -144,6 +146,12 @@ const headers = computed(() => {
 })
 
 const passTypes = ['MONTHLY', 'QUARTERLY', 'YEARLY', 'SINGLE']
+const passPrices = {
+  MONTHLY: 150,
+  QUARTERLY: 400,
+  YEARLY: 1200,
+  SINGLE: 20,
+}
 
 const schema = computed(() => {
   const baseSchema = {
@@ -171,10 +179,35 @@ const schema = computed(() => {
 const formData = ref({
   userId: '',
   type: 'MONTHLY',
-  price: 0,
+  price: passPrices.MONTHLY,
   startDate: '',
   endDate: '',
 })
+
+const formErrors = ref({})
+
+const formatDateInput = (date) => {
+  if (!date) return ''
+  const parsed = new Date(date)
+  if (Number.isNaN(parsed.getTime())) return ''
+  return parsed.toISOString().slice(0, 10)
+}
+
+const calculateEndDate = (type, startDate) => {
+  if (!type || !startDate) return ''
+  const start = new Date(startDate)
+  if (Number.isNaN(start.getTime())) return ''
+
+  if (type === 'SINGLE') {
+    return formatDateInput(start)
+  }
+
+  const monthsToAdd =
+    type === 'MONTHLY' ? 1 : type === 'QUARTERLY' ? 3 : type === 'YEARLY' ? 12 : 0
+  const end = new Date(start.getFullYear(), start.getMonth() + monthsToAdd, start.getDate())
+  end.setDate(end.getDate() - 1)
+  return formatDateInput(end)
+}
 
 const formatDate = (dateString) => {
   if (!dateString) return '—'
@@ -213,10 +246,11 @@ const openDialog = () => {
   formData.value = {
     userId: isClient.value ? currentUser.value?.id || '' : '',
     type: 'MONTHLY',
-    price: 0,
+    price: passPrices.MONTHLY,
     startDate: '',
     endDate: '',
   }
+  formErrors.value = {}
   dialog.value = true
 }
 
@@ -227,14 +261,37 @@ const editPass = (pass) => {
   }
   editingPass.value = pass
   formData.value = { ...pass }
+  formErrors.value = {}
   dialog.value = true
 }
 
-const checkDateOverlap = (newStartDate, newEndDate, existingPasses) => {
+watch(
+  () => formData.value.type,
+  (newType) => {
+    if (!newType) return
+    formData.value.price = passPrices[newType] ?? formData.value.price
+    formData.value.endDate = calculateEndDate(newType, formData.value.startDate)
+    if (formErrors.value.type) formErrors.value.type = ''
+    if (formErrors.value.price) formErrors.value.price = ''
+    if (formErrors.value.endDate) formErrors.value.endDate = ''
+  },
+)
+
+watch(
+  () => formData.value.startDate,
+  (newStart) => {
+    formData.value.endDate = calculateEndDate(formData.value.type, newStart)
+    if (formErrors.value.startDate) formErrors.value.startDate = ''
+    if (formErrors.value.endDate) formErrors.value.endDate = ''
+  },
+)
+
+const checkDateOverlap = (newStartDate, newEndDate, existingPasses, ignoreId = null) => {
   const newStart = new Date(newStartDate)
   const newEnd = new Date(newEndDate)
   
   for (const existingPass of existingPasses) {
+    if (ignoreId && existingPass.id === ignoreId) continue
     const existingStart = new Date(existingPass.startDate)
     const existingEnd = new Date(existingPass.endDate)
     
@@ -250,18 +307,46 @@ const checkDateOverlap = (newStartDate, newEndDate, existingPasses) => {
   return { overlaps: false }
 }
 
-const savePass = async (values) => {
+const validateForm = async () => {
+  try {
+    await schema.value.validate(formData.value, { abortEarly: false })
+    formErrors.value = {}
+    return true
+  } catch (error) {
+    const errors = {}
+    if (error?.inner?.length) {
+      error.inner.forEach((err) => {
+        if (err.path && !errors[err.path]) {
+          errors[err.path] = err.message
+        }
+      })
+    } else if (error?.path) {
+      errors[error.path] = error.message
+    }
+    formErrors.value = errors
+    return false
+  }
+}
+
+const savePass = async () => {
+  const isValid = await validateForm()
+  if (!isValid) return
   try {
     // Dla klientów automatycznie ustaw userId
-    const dataToSave = { ...values }
+    const dataToSave = { ...formData.value }
     if (isClient.value && !editingPass.value) {
       dataToSave.userId = currentUser.value?.id
     }
     
-    // Sprawdź nakładanie się dat przed wysłaniem (tylko przy tworzeniu nowego karnetu)
-    if (!editingPass.value && dataToSave.userId) {
+    // Sprawdź nakładanie się dat przed wysłaniem (tworzenie i edycja)
+    if (dataToSave.userId) {
       const userPasses = passes.value.filter(p => p.userId === dataToSave.userId)
-      const overlapCheck = checkDateOverlap(dataToSave.startDate, dataToSave.endDate, userPasses)
+      const overlapCheck = checkDateOverlap(
+        dataToSave.startDate,
+        dataToSave.endDate,
+        userPasses,
+        editingPass.value?.id || null,
+      )
       
       if (overlapCheck.overlaps) {
         const existing = overlapCheck.existingPass

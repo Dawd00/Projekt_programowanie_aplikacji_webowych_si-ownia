@@ -439,6 +439,13 @@ Po rejestracji można od razu zalogować się przez `POST /api/auth/login` lub f
 - `GET /api/users/:id/passes` - Karnety użytkownika
 - `GET /api/users/:id/bookings` - Rezerwacje użytkownika
 
+### Ograniczenia dostępu (role)
+- **ADMIN/EMPLOYEE**: pełny dostęp do `users`, `employees`, `passes`, `bookings`
+- **CLIENT**:
+  - `users`, `employees` → brak dostępu (403)
+  - `passes` → tylko własne karnety, brak edycji/usuwania
+  - `bookings` → tylko własne rezerwacje, brak zmiany statusu
+
 ### Karnety, Rezerwacje, Trenerzy, Pracownicy, Sesje, Sale
 - Pełny CRUD dla każdej encji (GET, POST, PATCH, DELETE)
 - Wszystkie GET endpointy z paginacją (limit, offset, total, count)

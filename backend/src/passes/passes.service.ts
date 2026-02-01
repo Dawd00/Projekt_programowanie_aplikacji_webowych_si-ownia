@@ -78,6 +78,30 @@ export class PassesService {
 
   async update(id: string, updatePassDto: UpdatePassDto): Promise<Pass> {
     const pass = await this.findOne(id);
+
+    const nextUserId = updatePassDto.userId || pass.userId;
+    const nextStartDate = updatePassDto.startDate
+      ? new Date(updatePassDto.startDate)
+      : new Date(pass.startDate);
+    const nextEndDate = updatePassDto.endDate
+      ? new Date(updatePassDto.endDate)
+      : new Date(pass.endDate);
+
+    const existingPasses = await this.passesRepository.find({
+      where: { userId: nextUserId },
+    });
+
+    for (const existingPass of existingPasses) {
+      if (existingPass.id === pass.id) continue;
+      const existingStartDate = new Date(existingPass.startDate);
+      const existingEndDate = new Date(existingPass.endDate);
+      if (nextStartDate <= existingEndDate && nextEndDate >= existingStartDate) {
+        throw new BadRequestException(
+          `Użytkownik ma już aktywny karnet w zakresie dat ${existingStartDate.toLocaleDateString('pl-PL')} - ${existingEndDate.toLocaleDateString('pl-PL')}. Zakresy dat nie mogą się nakładać.`,
+        );
+      }
+    }
+
     Object.assign(pass, updatePassDto);
     return await this.passesRepository.save(pass);
   }
