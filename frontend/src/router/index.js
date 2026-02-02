@@ -36,6 +36,12 @@ const router = createRouter({
       beforeEnter: requireAuth,
     },
     {
+      path: '/sessions',
+      name: 'sessions',
+      component: () => import('../views/Sessions.vue'),
+      beforeEnter: requireRole(['ADMIN', 'EMPLOYEE']),
+    },
+    {
       path: '/employees',
       name: 'employees',
       component: () => import('../views/Employees.vue'),

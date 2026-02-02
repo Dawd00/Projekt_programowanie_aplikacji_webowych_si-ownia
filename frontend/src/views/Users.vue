@@ -18,8 +18,12 @@
           @update:page="handlePageChange"
         >
           <template v-slot:item.actions="{ item }">
-            <v-btn icon="mdi-pencil" size="small" @click="editUser(item)"></v-btn>
-            <v-btn icon="mdi-delete" size="small" @click="deleteUser(item.id)"></v-btn>
+            <v-btn icon size="small" @click="editUser(item)">
+              <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+            <v-btn icon size="small" @click="deleteUser(item.id)">
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
           </template>
         </v-data-table>
       </v-col>
@@ -30,44 +34,44 @@
       <v-card>
         <v-card-title>{{ editingUser ? 'Edytuj użytkownika' : 'Dodaj użytkownika' }}</v-card-title>
         <v-card-text>
-          <Form @submit="saveUser" :validation-schema="schema" v-slot="{ errors }">
+          <form @submit.prevent="saveUser">
             <v-text-field
               v-model="formData.email"
               label="Email"
               type="email"
-              :error-messages="errors.email"
+              :error-messages="formErrors.email"
               required
             ></v-text-field>
             <v-text-field
               v-model="formData.firstName"
               label="Imię"
-              :error-messages="errors.firstName"
+              :error-messages="formErrors.firstName"
               required
             ></v-text-field>
             <v-text-field
               v-model="formData.lastName"
               label="Nazwisko"
-              :error-messages="errors.lastName"
+              :error-messages="formErrors.lastName"
               required
             ></v-text-field>
             <v-select
               v-model="formData.role"
               label="Rola"
               :items="roles"
-              :error-messages="errors.role"
+              :error-messages="formErrors.role"
               required
             ></v-select>
             <v-text-field
               v-model="formData.phone"
               label="Telefon"
-              :error-messages="errors.phone"
+              :error-messages="formErrors.phone"
             ></v-text-field>
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn @click="dialog = false">Anuluj</v-btn>
               <v-btn type="submit" color="primary">Zapisz</v-btn>
             </v-card-actions>
-          </Form>
+          </form>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -76,7 +80,6 @@
 
 <script setup>
 import { ref, onMounted, inject } from 'vue'
-import { Form } from 'vee-validate'
 import * as yup from 'yup'
 import api from '../services/api'
 
@@ -98,13 +101,20 @@ const headers = [
 ]
 
 const roles = ['CLIENT', 'TRAINER', 'EMPLOYEE', 'ADMIN']
+const defaultPassword = 'password123'
 
 const schema = yup.object({
   email: yup.string().email('Nieprawidłowy format email').required('Email jest wymagany'),
   firstName: yup.string().required('Imię jest wymagane').min(2, 'Imię musi mieć min. 2 znaki'),
   lastName: yup.string().required('Nazwisko jest wymagane').min(2, 'Nazwisko musi mieć min. 2 znaki'),
   role: yup.string().required('Rola jest wymagana').oneOf(roles, 'Nieprawidłowa rola'),
-  phone: yup.string().nullable().matches(/^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/, 'Nieprawidłowy format telefonu'),
+  phone: yup
+    .string()
+    .nullable()
+    .matches(
+      /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/,
+      { message: 'Nieprawidłowy format telefonu', excludeEmptyString: true },
+    ),
 })
 
 const formData = ref({
@@ -114,6 +124,8 @@ const formData = ref({
   role: 'CLIENT',
   phone: '',
 })
+
+const formErrors = ref({})
 
 const loadUsers = async () => {
   loading.value = true
@@ -143,24 +155,51 @@ const openDialog = () => {
     role: 'CLIENT',
     phone: '',
   }
+  formErrors.value = {}
   dialog.value = true
 }
 
 const editUser = (user) => {
   editingUser.value = user
   formData.value = { ...user }
+  formErrors.value = {}
   dialog.value = true
 }
 
-const saveUser = async (values) => {
+const validateForm = async () => {
   try {
-    const dataToSave = editingUser.value ? { ...values } : { ...values, password: 'temp123' }
+    await schema.validate(formData.value, { abortEarly: false })
+    formErrors.value = {}
+    return true
+  } catch (error) {
+    const errors = {}
+    if (error?.inner?.length) {
+      error.inner.forEach((err) => {
+        if (err.path && !errors[err.path]) {
+          errors[err.path] = err.message
+        }
+      })
+    } else if (error?.path) {
+      errors[error.path] = error.message
+    }
+    formErrors.value = errors
+    return false
+  }
+}
+
+const saveUser = async () => {
+  const isValid = await validateForm()
+  if (!isValid) return
+  try {
+    const dataToSave = editingUser.value
+      ? { ...formData.value }
+      : { ...formData.value, password: defaultPassword }
     if (editingUser.value) {
       await api.patch(`/users/${editingUser.value.id}`, dataToSave)
       toast?.showSuccess('Użytkownik został zaktualizowany')
     } else {
       await api.post('/users', dataToSave)
-      toast?.showSuccess('Użytkownik został utworzony')
+      toast?.showSuccess(`Użytkownik został utworzony (hasło: ${defaultPassword})`)
     }
     dialog.value = false
     loadUsers()

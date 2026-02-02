@@ -21,8 +21,12 @@
         >
           <template v-slot:item.actions="{ item }">
             <template v-if="canManageStatus">
-              <v-btn icon="mdi-pencil" size="small" @click="editBooking(item)"></v-btn>
-              <v-btn icon="mdi-delete" size="small" @click="deleteBooking(item.id)"></v-btn>
+              <v-btn icon size="small" @click="editBooking(item)">
+                <v-icon>mdi-pencil</v-icon>
+              </v-btn>
+              <v-btn icon size="small" @click="deleteBooking(item.id)">
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
             </template>
           </template>
         </v-data-table>
@@ -88,7 +92,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, inject, computed, watch } from 'vue'
+import { ref, onMounted, inject, computed, watch, nextTick } from 'vue'
 import * as yup from 'yup'
 import api from '../services/api'
 
@@ -97,22 +101,33 @@ const toast = inject('toast')
 const bookings = ref([])
 const rooms = ref([])
 const sessions = ref([])
+const users = ref([])
 const loading = ref(false)
 const dialog = ref(false)
 const editingBooking = ref(null)
 const currentPage = ref(1)
 const pagination = ref({ limit: 20, offset: 0, total: 0 })
 const currentUser = ref(null)
+const isHydrating = ref(false)
 
-const headers = [
-  { title: 'Sala', key: 'roomName' },
-  { title: 'Data', key: 'sessionDate' },
-  { title: 'Godzina', key: 'sessionTime' },
-  { title: 'Typ', key: 'sessionType' },
-  { title: 'Status', key: 'status' },
-  { title: 'Data utworzenia', key: 'createdAt' },
-  { title: 'Akcje', key: 'actions', sortable: false },
-]
+const headers = computed(() => {
+  const baseHeaders = [
+    { title: 'Użytkownik', key: 'userName' },
+    { title: 'Sala', key: 'roomName' },
+    { title: 'Data', key: 'sessionDate' },
+    { title: 'Godzina', key: 'sessionTime' },
+    { title: 'Typ', key: 'sessionType' },
+    { title: 'Status', key: 'status' },
+    { title: 'Data utworzenia', key: 'createdAt' },
+    { title: 'Akcje', key: 'actions', sortable: false },
+  ]
+
+  if (!canManageStatus.value) {
+    return baseHeaders.filter((header) => header.key !== 'actions')
+  }
+
+  return baseHeaders
+})
 
 const statuses = ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED']
 
@@ -142,6 +157,9 @@ const roomOptions = computed(() => rooms.value)
 
 const dateKey = (value) => {
   if (!value) return ''
+  if (typeof value === 'string' && value.length >= 10) {
+    return value.slice(0, 10)
+  }
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return ''
   return date.toISOString().slice(0, 10)
@@ -156,6 +174,26 @@ const dateOptions = computed(() => {
   return [...new Set(dates)].sort()
 })
 
+const buildSessionLabel = (session) => {
+  if (!session) return ''
+  let label = `${session.startTime} - ${session.endTime}`
+  if (session.type === 'GROUP') {
+    label += ` (Zajęcia grupowe)`
+  } else {
+    label += ` (Trening personalny)`
+  }
+  return label
+}
+
+const confirmedCountBySession = computed(() => {
+  const map = {}
+  bookings.value.forEach((booking) => {
+    if (booking.status !== 'CONFIRMED') return
+    map[booking.sessionId] = (map[booking.sessionId] || 0) + 1
+  })
+  return map
+})
+
 const sessionOptions = computed(() => {
   if (!formData.value.roomId || !formData.value.date) return []
   const filteredSessions = sessions.value.filter(
@@ -163,20 +201,32 @@ const sessionOptions = computed(() => {
       s.roomId === formData.value.roomId &&
       dateKey(s.date) === formData.value.date,
   )
-  
-  return filteredSessions.map((s) => {
-    let label = `${s.startTime} - ${s.endTime}`
-    if (s.type === 'GROUP') {
-      label += ` (Zajęcia grupowe)`
-    } else {
-      label += ` (Trening personalny)`
-    }
-    return {
+
+  const options = filteredSessions
+    .filter((s) => {
+      if (!canManageStatus.value) return true
+      if (editingBooking.value?.sessionId === s.id) return true
+      const confirmedCount = confirmedCountBySession.value[s.id] || 0
+      return confirmedCount < s.maxSlots
+    })
+    .map((s) => ({
       id: s.id,
-      label,
+      label: buildSessionLabel(s),
       type: s.type,
+    }))
+
+  if (formData.value.sessionId && !options.find((o) => o.id === formData.value.sessionId)) {
+    const session = sessionsById.value[formData.value.sessionId]
+    if (session) {
+      options.unshift({
+        id: session.id,
+        label: buildSessionLabel(session),
+        type: session.type,
+      })
     }
-  })
+  }
+
+  return options
 })
 
 const roomsById = computed(() => {
@@ -195,16 +245,38 @@ const sessionsById = computed(() => {
   return map
 })
 
+const usersById = computed(() => {
+  const map = {}
+  users.value.forEach((user) => {
+    const name = `${user.firstName || ''} ${user.lastName || ''}`.trim()
+    map[user.id] = name || user.email || '—'
+  })
+  return map
+})
+
 const bookingsWithSession = computed(() =>
   bookings.value.map((booking) => {
     const session = sessionsById.value[booking.sessionId]
     const room = session ? roomsById.value[session.roomId] : null
+    const userName =
+      usersById.value[booking.userId] ||
+      (currentUser.value?.id === booking.userId
+        ? `${currentUser.value?.firstName || ''} ${currentUser.value?.lastName || ''}`.trim() ||
+          currentUser.value?.email ||
+          '—'
+        : '—')
     return {
       ...booking,
+      userName,
       roomName: room?.name || '—',
       sessionDate: session ? dateKey(session.date) : '—',
       sessionTime: session ? `${session.startTime} - ${session.endTime}` : '—',
-      sessionType: session?.type === 'GROUP' ? 'Zajęcia grupowe' : session?.type === 'PERSONAL' ? 'Trening personalny' : '—',
+      sessionType:
+        session?.type === 'GROUP'
+          ? 'Zajęcia grupowe'
+          : session?.type === 'PERSONAL'
+          ? 'Trening personalny'
+          : '—',
     }
   }),
 )
@@ -212,6 +284,7 @@ const bookingsWithSession = computed(() =>
 watch(
   () => formData.value.roomId,
   () => {
+    if (isHydrating.value) return
     formData.value.date = ''
     formData.value.sessionId = ''
     if (formErrors.value.roomId) formErrors.value.roomId = ''
@@ -223,6 +296,7 @@ watch(
 watch(
   () => formData.value.date,
   () => {
+    if (isHydrating.value) return
     formData.value.sessionId = ''
     if (formErrors.value.date) formErrors.value.date = ''
     if (formErrors.value.sessionId) formErrors.value.sessionId = ''
@@ -250,6 +324,19 @@ const loadSessions = async () => {
   } catch (error) {
     console.error('Error loading sessions:', error)
     toast?.showError('Wystąpił błąd podczas ładowania sesji')
+  }
+}
+
+const loadUsers = async () => {
+  if (!canManageStatus.value) return
+  try {
+    const response = await api.get('/users', {
+      params: { limit: 200, offset: 0 },
+    })
+    users.value = response.data
+  } catch (error) {
+    console.error('Error loading users:', error)
+    toast?.showError('Wystąpił błąd podczas ładowania użytkowników')
   }
 }
 
@@ -288,7 +375,9 @@ const openDialog = () => {
   dialog.value = true
 }
 
-const editBooking = (booking) => {
+const editBooking = async (booking) => {
+  isHydrating.value = true
+  await Promise.all([loadRooms(), loadSessions()])
   const session = sessionsById.value[booking.sessionId]
   editingBooking.value = booking
   formData.value = {
@@ -299,6 +388,8 @@ const editBooking = (booking) => {
     notes: booking.notes || '',
   }
   formErrors.value = {}
+  await nextTick()
+  isHydrating.value = false
   dialog.value = true
 }
 
@@ -388,7 +479,7 @@ onMounted(() => {
       console.error('Error parsing user data:', e)
     }
   }
-  Promise.all([loadRooms(), loadSessions()]).then(() => {
+  Promise.all([loadRooms(), loadSessions(), loadUsers()]).then(() => {
     loadBookings()
   })
 })

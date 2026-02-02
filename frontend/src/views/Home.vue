@@ -58,6 +58,24 @@
       </v-col>
 
       <v-col cols="12" md="4">
+        <v-card v-if="canManageSessions">
+          <v-card-title>Sesje</v-card-title>
+          <v-card-text>
+            Zarządzaj dostępnymi terminami zajęć i przypisanymi salami.
+          </v-card-text>
+          <v-card-actions>
+            <v-btn to="/sessions" color="primary">Przejdź</v-btn>
+          </v-card-actions>
+        </v-card>
+        <v-card v-else style="opacity: 0.5; pointer-events: none;">
+          <v-card-title>Sesje</v-card-title>
+          <v-card-text>
+            Funkcja dostępna tylko dla administratorów i pracowników.
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" md="4">
         <v-card v-if="canManageEmployees">
           <v-card-title>Pracownicy</v-card-title>
           <v-card-text>
@@ -87,6 +105,7 @@ const role = computed(() => user.value?.role || null)
 const canManageUsers = computed(() => ['ADMIN', 'EMPLOYEE'].includes(role.value))
 const canManagePasses = computed(() => ['ADMIN', 'EMPLOYEE'].includes(role.value))
 const canManageEmployees = computed(() => ['ADMIN', 'EMPLOYEE'].includes(role.value))
+const canManageSessions = computed(() => ['ADMIN', 'EMPLOYEE'].includes(role.value))
 
 onMounted(() => {
   const userData = localStorage.getItem('user')

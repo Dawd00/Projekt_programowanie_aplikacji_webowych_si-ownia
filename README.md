@@ -4,7 +4,7 @@ System zarządzania siłownią umożliwiający klientom zakup karnetów, rezerwa
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Wymagania
 - Docker & Docker Compose
@@ -125,7 +125,7 @@ docker compose exec frontend npm install
 
 ---
 
-## 📋 Technologie
+## Technologie
 
 ### Backend
 - **Node.js** + **NestJS** (TypeScript)
@@ -148,7 +148,7 @@ docker compose exec frontend npm install
 
 ---
 
-## 🏗️ Struktura Projektu
+## Struktura Projektu
 
 ```
 .
@@ -178,9 +178,9 @@ docker compose exec frontend npm install
 
 ---
 
-## 📁 Szczegółowy Spis Plików
+## Szczegółowy Spis Plików
 
-### 📂 Główny katalog
+### Główny katalog
 
 | Plik | Opis |
 |------|------|
@@ -188,7 +188,7 @@ docker compose exec frontend npm install
 | `docker-compose.yml` | Konfiguracja Docker dla 4 serwisów (db, adminer, backend, frontend) |
 | `.env.example` | Przykładowe zmienne środowiskowe |
 
-### 📂 `backend/`
+### `backend/`
 
 #### Główne pliki
 | Plik | Opis |
@@ -303,7 +303,7 @@ docker compose exec frontend npm install
 | `seeds/seed.module.ts` | Moduł seed (rejestruje repozytoria) |
 | `seeds/seed.ts` | Skrypt uruchamiający seedowanie (`npm run seed`) |
 
-### 📂 `frontend/`
+### `frontend/`
 
 #### Główne pliki
 | Plik | Opis |
@@ -352,7 +352,7 @@ docker compose exec frontend npm install
 |------|------|
 | `vuetify.js` | Konfiguracja Vuetify (temat, komponenty) |
 
-### 📂 `docs/` - Dokumentacja
+### `docs/` - Dokumentacja
 
 | Plik | Opis |
 |------|------|
@@ -363,7 +363,7 @@ docker compose exec frontend npm install
 
 ---
 
-## 🗄️ Model Danych
+## Model Danych
 
 System zawiera **7 tabel** z relacjami:
 
@@ -379,7 +379,7 @@ Szczegółowy opis: [docs/MODEL_DANYCH.md](./docs/MODEL_DANYCH.md)
 
 ---
 
-## 🔌 API Endpoints
+## API Endpoints
 
 ### Autoryzacja
 - `POST /api/auth/register` - Rejestracja (publiczne)
@@ -455,7 +455,7 @@ Po rejestracji można od razu zalogować się przez `POST /api/auth/login` lub f
 
 ---
 
-## ✨ Funkcjonalności
+## Funkcjonalności
 
 ### Backend
 - ✅ **JWT Autoryzacja** - Wszystkie endpointy chronione (oprócz publicznych)
@@ -475,7 +475,7 @@ Po rejestracji można od razu zalogować się przez `POST /api/auth/login` lub f
 
 ---
 
-## 👥 User Stories
+## User Stories
 
 ### Klient
 - Jako klient mogę zarejestrować się w systemie
@@ -498,7 +498,7 @@ Po rejestracji można od razu zalogować się przez `POST /api/auth/login` lub f
 
 ---
 
-## 🔧 Rozwój
+## Rozwój
 
 ### Backend (lokalnie)
 ```bash
@@ -527,7 +527,7 @@ npm test
 
 ---
 
-## 📚 Dokumentacja
+## Dokumentacja
 
 - [Model Danych](./docs/MODEL_DANYCH.md) - Diagram ERD i opisy tabel
 - [API Contract](./docs/API_CONTRACT.md) - Pełna dokumentacja endpointów
@@ -536,7 +536,7 @@ npm test
 
 ---
 
-## 🔐 Autoryzacja
+## Autoryzacja
 
 Wszystkie endpointy (oprócz `/api/auth/register`, `/api/auth/login`, `/api/health`) wymagają tokena JWT w nagłówku:
 
@@ -548,7 +548,7 @@ Token otrzymujesz po zalogowaniu przez `/api/auth/login`.
 
 ---
 
-## 📝 Git Workflow
+## Git Workflow
 
 - `main` - stabilna wersja, bez commitów "work in progress"
 - `feature/*` - nowe funkcjonalności

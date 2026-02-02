@@ -30,8 +30,12 @@
             </v-chip>
           </template>
           <template v-slot:item.actions="{ item }">
-            <v-btn v-if="isAdminOrEmployee" icon="mdi-pencil" size="small" @click="editPass(item)"></v-btn>
-            <v-btn v-if="isAdminOrEmployee" icon="mdi-delete" size="small" @click="deletePass(item.id)"></v-btn>
+            <v-btn v-if="isAdminOrEmployee" icon size="small" @click="editPass(item)">
+              <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+            <v-btn v-if="isAdminOrEmployee" icon size="small" @click="deletePass(item.id)">
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
           </template>
         </v-data-table>
       </v-col>

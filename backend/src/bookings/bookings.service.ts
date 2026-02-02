@@ -1,18 +1,40 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Booking } from './entities/booking.entity';
+import { Booking, BookingStatus } from './entities/booking.entity';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
+import { Session } from '../sessions/entities/session.entity';
 
 @Injectable()
 export class BookingsService {
   constructor(
     @InjectRepository(Booking)
     private bookingsRepository: Repository<Booking>,
+    @InjectRepository(Session)
+    private sessionsRepository: Repository<Session>,
   ) {}
 
   async create(createBookingDto: CreateBookingDto): Promise<Booking> {
+    const session = await this.sessionsRepository.findOne({
+      where: { id: createBookingDto.sessionId },
+    });
+    if (!session) {
+      throw new NotFoundException(
+        `Session with ID ${createBookingDto.sessionId} not found`,
+      );
+    }
+
+    const confirmedCount = await this.bookingsRepository.count({
+      where: {
+        sessionId: createBookingDto.sessionId,
+        status: BookingStatus.CONFIRMED,
+      },
+    });
+    if (confirmedCount >= session.maxSlots) {
+      throw new BadRequestException('Brak wolnych miejsc na wybrany termin');
+    }
+
     const booking = this.bookingsRepository.create(createBookingDto);
     return await this.bookingsRepository.save(booking);
   }

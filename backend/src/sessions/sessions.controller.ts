@@ -14,6 +14,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { SessionsService } from './sessions.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @ApiTags('sessions')
 @Controller('sessions')
@@ -22,6 +23,7 @@ export class SessionsController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new session' })
+  @Roles('ADMIN', 'EMPLOYEE')
   create(@Body() createSessionDto: CreateSessionDto) {
     return this.sessionsService.create(createSessionDto);
   }
@@ -46,12 +48,14 @@ export class SessionsController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update session' })
+  @Roles('ADMIN', 'EMPLOYEE')
   update(@Param('id') id: string, @Body() updateSessionDto: UpdateSessionDto) {
     return this.sessionsService.update(id, updateSessionDto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete session' })
+  @Roles('ADMIN', 'EMPLOYEE')
   remove(@Param('id') id: string) {
     return this.sessionsService.remove(id);
   }
