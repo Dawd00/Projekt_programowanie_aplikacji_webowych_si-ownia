@@ -36,9 +36,9 @@ docker compose up --build
 - **Adminer (DB)**: http://localhost:8080
   - System: PostgreSQL
   - Serwer: `db`
-  - Użytkownik: `gym_user` (lub z .env)
-  - Hasło: `gym_password` (lub z .env)
-  - Baza: `gym_db` (lub z .env)
+  - Użytkownik: `gym` (lub z .env)
+  - Hasło: `gym` (lub z .env)
+  - Baza: `gym` (lub z .env)
 
 ### Pierwsze kroki
 
